@@ -287,11 +287,34 @@ body[data-view="quiniela"] #preview10{display:none!important}
 .q-table th{font-family:"JetBrains Mono",monospace;color:var(--navy);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .q-table td.num,.q-table th.num{text-align:center}
 .q-table tr.leader td{font-weight:700;background:#fdf6d3}
+.q-welcome-msg{font-size:16px;line-height:1.5;margin:0 0 12px}
+.q-prize{font-size:15.5px;line-height:1.5;margin:0 0 14px;background:#e6eef7;border-radius:10px;padding:10px 12px}
+.q-prize span{font-family:"Barlow Condensed",sans-serif;font-size:19px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--redtx);margin-right:6px}
+.q-rules-title{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;color:var(--navy);margin:0 0 6px}
+.q-rules{margin:0;padding-left:20px;font-size:15px;line-height:1.55}
+.q-rules li{margin-bottom:5px}
+.q-rules li:last-child{margin-bottom:0}
 .q-allgame{border-bottom:1px solid var(--line);padding:10px 0}
 .q-allgame:last-child{border-bottom:0}
 .q-allgame .t{font-weight:700;color:var(--navy);font-size:14.5px}
 .q-allgame .p{font-size:13.5px;color:var(--ink);margin-top:4px;line-height:1.5}
 .q-allgame .p .hide{color:var(--muted);font-style:italic}
+.q-bonus-section{margin-top:22px}
+.q-bonus-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;border-left:6px solid var(--red);padding-left:12px;margin-bottom:10px}
+.q-bonus-head h3{font-family:"Barlow Condensed",sans-serif;font-size:32px;margin:0;text-transform:uppercase;line-height:1;color:var(--navy)}
+.q-bonus-count{font-family:"JetBrains Mono",monospace;font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.q-bonus-rules{background:var(--navy);color:#fff;padding:14px 16px;border-left:6px solid var(--red);border-radius:12px;font-size:15px;line-height:1.55;font-weight:600;margin:0 0 14px}
+.q-bonus-q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(10,25,47,.05)}
+.q-bonus-q.locked{background:var(--surface2)}
+.q-bonus-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px}
+.q-bonus-text{font-size:15.5px;font-weight:600;line-height:1.4;color:var(--ink);flex:1}
+.q-bonus-pts{font-family:"JetBrains Mono",monospace;font-size:12.5px;font-weight:700;color:#fff;background:var(--navy);padding:4px 8px;border-radius:6px;white-space:nowrap;flex:0 0 auto}
+.q-bonus-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.q-bonus-opt{min-height:52px;border:2px solid var(--navy);border-radius:10px;background:var(--surface);color:var(--navy);font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;padding:8px 6px;text-align:center;-webkit-tap-highlight-color:transparent}
+.q-bonus-opt.sel{background:var(--navy);color:#fff}
+.q-bonus-opt:disabled{cursor:default;opacity:.75}
+.q-bonus-opt:disabled:not(.sel){border-color:var(--line);color:#8a97a3}
+.q-bonus-opt:active{transform:scale(.98)}
 body[data-view="tabla"] .hero,body[data-view="tabla"] .ticker,body[data-view="tabla"] .week-panel,body[data-view="tabla"] #podiumSection,
 body[data-view="historial"] .hero,body[data-view="historial"] .ticker,body[data-view="historial"] .week-panel,body[data-view="historial"] #podiumSection,
 body[data-view="castigos"] .hero,body[data-view="castigos"] .ticker,body[data-view="castigos"] .week-panel,body[data-view="castigos"] #podiumSection,
@@ -913,8 +936,22 @@ Los que sí pegaron: Emi sobrado con Douglas en 70, Ber con Houston ganando por 
 <h2 class="section">¿Si le sabes? — Quiniela Semana 10</h2>
 <div class="q-intro">
   <p class="q-weekline">14 partidos · 12 al 16 de noviembre de 2026</p>
-  <p class="q-deadline">Elige al ganador de cada partido: 1 punto por acierto. Cada partido se cierra a su kickoff y los picks de los demás se revelan a esa hora. Descansan: CHI, DEN, PHI, TB.</p>
+  <p class="q-deadline">Elige al ganador de cada partido: 1 punto por acierto. Toda la quiniela se cierra al kickoff del TNF, jueves 12 nov 7:15 p.m.; después de esa hora no se puede cambiar ningún pick. Los picks de los demás se revelan al kickoff de cada partido. Descansan: CHI, DEN, PHI, TB.</p>
   <span class="q-badge" id="qStatusBadge">Abierta</span>
+</div>
+
+<div class="q-card q-welcome">
+  <h3>Bienvenido a la quiniela</h3>
+  <p class="q-welcome-msg">Una forma más de demostrar que no le sabes. Estudia todo lo que puedas o pregúntale a DVD y mete lo contrario.</p>
+  <p class="q-prize"><span>Premio:</span>castigo recolectado de la semana actual más posible acumulado de semanas anteriores.</p>
+  <p class="q-rules-title">Reglas</p>
+  <ul class="q-rules">
+    <li>Manda tu quiniela antes del TNF.</li>
+    <li>Puedes hacer todos los cambios que quieras antes del TNF.</li>
+    <li>Considera jugadores QUES porque no hay cambios después del kick off del TNF.</li>
+    <li>Para participar por el premio tienes que haber jugado la jornada, no tener deudas con el banco del parley, haber acertado tu pick.</li>
+    <li>Si no se cumplen estos requisitos se queda en el banco para la quiniela de la siguiente semana.</li>
+  </ul>
 </div>
 
 <div class="q-card" id="qAuthView">
@@ -962,6 +999,14 @@ Los que sí pegaron: Emi sobrado con Douglas en 70, Ber con Houston ganando por 
   </div>
   <div id="qPicksPane">
     <div id="qGamesWrap"></div>
+    <div class="q-bonus-section" id="qBonusSection">
+      <div class="q-bonus-head">
+        <h3>Preguntas bonus</h3>
+        <span class="q-bonus-count" id="qBonusCounter">Bonus: 0/5</span>
+      </div>
+      <p class="q-bonus-rules">LAS FÁCILES DAN 1 PUNTO SI ACIERTAS Y NO QUITAN PUNTOS SI FALLAS. LAS MEDIAS DAN 2 PUNTOS Y QUITAN 1 SI FALLAS. LAS DIFÍCILES DAN 3 PUNTOS Y QUITAN 2 SI FALLAS.</p>
+      <div id="qBonusWrap"></div>
+    </div>
     <button type="button" class="q-btn red" id="qSaveBtn">¿SI LE SABES?</button>
     <div class="q-msg" id="qSaveMsg"></div>
   </div>
@@ -1892,8 +1937,10 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
      Mismo proyecto Firebase y mismas cuentas que Manda tu pick.
      Colección `quiniela`, un documento por miembro: 10_<MIEMBRO>,
      con { member, week:10, weekDate, picks:{G01:"WAS",...}, updatedAt }.
-     Cada partido se bloquea a su kickoff; al guardar solo se escriben
-     los partidos aún abiertos y los bloqueados se conservan.
+     Toda la quiniela se cierra al kickoff del TNF (G01, jueves 12 nov
+     7:15 p.m.): después de esa hora no se puede cambiar ningún pick y
+     el botón ¿SI LE SABES? queda deshabilitado. Los picks de los demás
+     se siguen revelando al kickoff de cada partido.
      Resultados desde el scoreboard público de ESPN (Semana 10). */
   var MEMBERS=["MARES","PALA","BER","DVD","EMI","MONROY","BUJA","CORREA"];
   var WEEK=10, WEEK_DATE="2026-11-15";
@@ -1916,6 +1963,8 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
   function $(id){return document.getElementById(id);}
   function qEsc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
   function isLocked(g){return Date.now()>=new Date(g.kickoff).getTime();}
+  var TNF_LOCK=new Date(GAMES[0].kickoff).getTime();
+  function quinielaClosed(){return Date.now()>=TNF_LOCK;}
   function logoFile(ab){return ab==="ARZ"?"ARI":ab;}
   function showMsg(el,text,kind){if(!el){return;}el.textContent=text;el.className="q-msg "+kind;}
   function hideMsg(el){if(!el){return;}el.className="q-msg";el.textContent="";}
@@ -1923,7 +1972,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
   if(!authView||!mainView){return;}
   (function(){
     var badge=$("qStatusBadge");
-    if(badge&&GAMES.every(isLocked)){badge.textContent="Cerrada";badge.className="q-badge closed";}
+    if(badge&&quinielaClosed()){badge.textContent="Cerrada";badge.className="q-badge closed";}
   })();
   if(typeof firebase==="undefined"||!firebase.initializeApp||!firebase.auth||!firebase.firestore){
     showMsg($("qAuthMsg"),"No se pudo cargar el acceso. Revisa tu conexión e inténtalo de nuevo.","err");
@@ -1945,7 +1994,14 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
     showMsg($("qAuthMsg"),"No se pudo cargar el acceso. Revisa tu conexión e inténtalo de nuevo.","err");
     return;
   }
-  var currentUser=null,currentMember=null,myPicks={},allQuinielas=[],results=null;
+  var BONUS=[
+    {id:"B04",q:"¿Ganará algún equipo por más de 20 puntos?",opts:["Sí","No"],pts:"+1 / 0"},
+    {id:"B08",q:"¿Habrá un TD defensivo en la semana?",opts:["Sí","No"],pts:"+2 / -1"},
+    {id:"B09",q:"¿Lanzará Jared Goff más de 300 yardas vs New England?",opts:["Sí","No"],pts:"+2 / -1"},
+    {id:"B25",q:"¿Correrá algún RB más de 150 yardas en un partido?",opts:["Sí","No"],pts:"+3 / -2"},
+    {id:"B27",q:"¿Habrá al menos 2 partidos con más de 55 puntos combinados?",opts:["Sí","No"],pts:"+3 / -2"}
+  ];
+  var currentUser=null,currentMember=null,myPicks={},myBonus={},allQuinielas=[],results=null;
 
   /* Pestañas de acceso */
   $("qTabRegister").addEventListener("click",function(){
@@ -2009,7 +2065,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
     currentUser=user;
     hideMsg($("qAuthMsg"));hideMsg($("qSaveMsg"));
     if(!user){
-      currentMember=null;myPicks={};
+      currentMember=null;myPicks={};myBonus={};
       authView.hidden=false;mainView.hidden=true;
       return;
     }
@@ -2023,7 +2079,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
       authView.hidden=true;mainView.hidden=false;
       $("qWhoamiLine").textContent="Hola, "+currentMember;
       loadMine().then(loadAll).then(function(){
-        renderGames();renderTable();renderAll();
+        renderGames();renderBonus();renderTable();renderAll();
       });
     }).catch(function(){
       showMsg($("qAuthMsg"),"No se pudo cargar tu cuenta. Inténtalo de nuevo.","err");
@@ -2034,7 +2090,8 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
   function loadMine(){
     return db.collection("quiniela").doc(WEEK+"_"+currentMember).get().then(function(snap){
       myPicks=snap.exists?(snap.data().picks||{}):{};
-    }).catch(function(){myPicks={};});
+      myBonus=snap.exists?(snap.data().bonus||{}):{};
+    }).catch(function(){myPicks={};myBonus={};});
   }
   function loadAll(){
     return db.collection("quiniela").where("week","==",WEEK).get().then(function(snap){
@@ -2062,7 +2119,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
         h.className="q-group";h.textContent=g.group;
         wrap.appendChild(h);lastGroup=g.group;
       }
-      var locked=isLocked(g);
+      var locked=quinielaClosed();
       var card=document.createElement("div");
       card.className="q-game"+(locked?" locked":"");
       var meta=document.createElement("div");
@@ -2096,21 +2153,70 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
       wrap.appendChild(card);
     });
     updateCounter();
-    var allLocked=GAMES.every(isLocked);
+    var closed=quinielaClosed();
     var badge=$("qStatusBadge");
-    if(badge){badge.textContent=allLocked?"Cerrada":"Abierta";badge.className="q-badge"+(allLocked?" closed":"");}
-    $("qSaveBtn").disabled=allLocked;
+    if(badge){badge.textContent=closed?"Cerrada":"Abierta";badge.className="q-badge"+(closed?" closed":"");}
+    $("qSaveBtn").disabled=closed;
+  }
+  /* Preguntas bonus */
+  function updateBonusCounter(){
+    var n=0;
+    BONUS.forEach(function(b){if(myBonus[b.id]){n++;}});
+    var el=$("qBonusCounter");
+    if(el){el.textContent="Bonus: "+n+"/"+BONUS.length;}
+  }
+  function renderBonus(){
+    var wrap=$("qBonusWrap");
+    if(!wrap){return;}
+    wrap.innerHTML="";
+    var locked=quinielaClosed();
+    BONUS.forEach(function(b){
+      var card=document.createElement("div");
+      card.className="q-bonus-q"+(locked?" locked":"");
+      var top=document.createElement("div");
+      top.className="q-bonus-top";
+      var txt=document.createElement("span");
+      txt.className="q-bonus-text";txt.textContent=b.q;
+      var pts=document.createElement("span");
+      pts.className="q-bonus-pts";pts.textContent=b.pts;
+      top.appendChild(txt);top.appendChild(pts);
+      card.appendChild(top);
+      var opts=document.createElement("div");
+      opts.className="q-bonus-opts";
+      b.opts.forEach(function(opt){
+        var btn=document.createElement("button");
+        btn.type="button";
+        btn.className="q-bonus-opt"+(myBonus[b.id]===opt?" sel":"");
+        btn.disabled=locked;
+        btn.setAttribute("aria-pressed",myBonus[b.id]===opt?"true":"false");
+        btn.setAttribute("aria-label",b.q+" — "+opt);
+        btn.textContent=opt;
+        btn.addEventListener("click",function(){myBonus[b.id]=opt;renderBonus();});
+        opts.appendChild(btn);
+      });
+      card.appendChild(opts);
+      wrap.appendChild(card);
+    });
+    updateBonusCounter();
   }
   /* Guardar */
   $("qSaveBtn").addEventListener("click",function(){
     if(!currentUser||!currentMember){return;}
     var btn=$("qSaveBtn");
-    var openPicks={},lockedPicks={};
+    if(quinielaClosed()){
+      showMsg($("qSaveMsg"),"La quiniela ya cerró: el TNF ya empezó y no se puede cambiar ningún pick.","err");
+      renderGames();renderBonus();
+      return;
+    }
+    var toSave={};
     GAMES.forEach(function(g){
-      if(!myPicks[g.id]){return;}
-      if(isLocked(g)){lockedPicks[g.id]=myPicks[g.id];}else{openPicks[g.id]=myPicks[g.id];}
+      if(myPicks[g.id]){toSave[g.id]=myPicks[g.id];}
     });
-    if(Object.keys(openPicks).length===0&&Object.keys(lockedPicks).length===0){
+    var toSaveBonus={};
+    BONUS.forEach(function(b){
+      if(myBonus[b.id]){toSaveBonus[b.id]=myBonus[b.id];}
+    });
+    if(Object.keys(toSave).length===0&&Object.keys(toSaveBonus).length===0){
       showMsg($("qSaveMsg"),"Elige al menos un ganador.","err");return;
     }
     btn.disabled=true;btn.textContent="Guardando…";
@@ -2119,19 +2225,37 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
       var prev=snap.exists?(snap.data().picks||{}):{};
       var merged={};
       Object.keys(prev).forEach(function(k){merged[k]=prev[k];});
-      Object.keys(lockedPicks).forEach(function(k){merged[k]=lockedPicks[k];});
-      Object.keys(openPicks).forEach(function(k){merged[k]=openPicks[k];});
-      return ref.set({member:currentMember,week:WEEK,weekDate:WEEK_DATE,picks:merged,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).then(function(){
-        myPicks=merged;
+      Object.keys(toSave).forEach(function(k){merged[k]=toSave[k];});
+      var prevBonus=snap.exists?(snap.data().bonus||{}):{};
+      var mergedBonus={};
+      Object.keys(prevBonus).forEach(function(k){mergedBonus[k]=prevBonus[k];});
+      Object.keys(toSaveBonus).forEach(function(k){mergedBonus[k]=toSaveBonus[k];});
+      return ref.set({member:currentMember,week:WEEK,weekDate:WEEK_DATE,picks:merged,bonus:mergedBonus,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).then(function(){
+        myPicks=merged;myBonus=mergedBonus;
         showMsg($("qSaveMsg"),"Quiniela guardada.","ok");
         return loadAll();
       });
     }).then(function(){
-      renderGames();
+      renderGames();renderBonus();
     }).catch(function(){
       showMsg($("qSaveMsg"),"No se pudo guardar. Inténtalo de nuevo.","err");
     }).then(function(){btn.disabled=false;btn.textContent="¿SI LE SABES?";});
   });
+
+  /* Cierre en vivo: si la página queda abierta al kickoff del TNF,
+     se bloquea sola sin recargar */
+  var wasClosed=quinielaClosed();
+  window.setInterval(function(){
+    var c=quinielaClosed();
+    if(c!==wasClosed){
+      wasClosed=c;
+      if(currentMember){renderGames();renderBonus();}
+      else{
+        var badge=$("qStatusBadge");
+        if(badge){badge.textContent="Cerrada";badge.className="q-badge closed";}
+      }
+    }
+  },20000);
 
   /* Resultados ESPN */
   function loadResults(){
