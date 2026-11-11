@@ -224,9 +224,16 @@ function fechaLarga(iso) {
 }
 function currentWeek() {
   const now = mxNowParts();
-  const target = isoOfMs(dateMs(now.date) - 86400000); // hoy menos 1 día
-  const idx = SUNDAYS.findIndex(s => s.date >= target);
+  // La semana del pick es el primer domingo en o después de hoy,
+  // salvo que hoy sea domingo y ya pasó el cierre (11:45 AM), en cuyo
+  // caso es el domingo siguiente. Así el lunes ya se puede mandar el
+  // pick de la semana que viene.
+  let idx = SUNDAYS.findIndex(s => s.date >= now.date);
   if (idx === -1) return { ended: true };
+  if (SUNDAYS[idx].date === now.date && now.minutes >= 11 * 60 + 45) {
+    idx += 1;
+    if (idx >= SUNDAYS.length) return { ended: true };
+  }
   return { ...SUNDAYS[idx] };
 }
 function isClosed(week) {
