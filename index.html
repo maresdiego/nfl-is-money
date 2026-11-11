@@ -310,6 +310,8 @@ button.news-card[aria-expanded="true"]{border-color:var(--navy)}
 .news-team span{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:16px;letter-spacing:.03em;line-height:1}
 .news-vs{font-size:10px;font-weight:700;color:var(--muted);flex:0 0 auto}
 .news-cta{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--redtx);display:flex;align-items:center;justify-content:space-between;gap:6px;border-top:1px solid var(--line);padding-top:7px}
+.news-pick{font-size:13px;font-weight:600;line-height:1.35;color:var(--ink);border-top:1px solid var(--line);padding-top:7px}
+.news-pick.pending{color:var(--muted);font-weight:500}
 .preview-wrap{margin-top:20px}
 .preview-wrap[hidden]{display:none}
 .preview-head{background:var(--navy);color:#fff;padding:18px;border-left:6px solid var(--red);border-radius:12px}
@@ -861,6 +863,9 @@ function currentWeekNum(){
 }
 var CURRENT_WEEK=currentWeekNum();
 var SELECTED_WEEK=String(CURRENT_WEEK);
+/* Textos de los picks transcritos de las capturas recibidas.
+   Clave: semana_miembro, p. ej. "10_MARES". Se llena al transcribir cada captura. */
+var PICK_TEXTS={"10_MARES":"Cleveland Browns ganador (incl. prórroga) +190 vs Houston Texans"};
 var week9=[
  {n:"MARES",pick:"Matthew Stafford +224.5 yds pase + WAS Commanders +10.5",v:"hit",final:"Rams 20 — 13 Commanders",legs:[["ok","Matthew Stafford más de 224.5 yds pase","26/43, 228 yardas, 1 TD y 1 INT — pegó por solo 3.5 yardas."],["ok","Hándicap WAS Commanders +10.5","Washington perdió por 7; con el +10.5 cubrió por 3.5 puntos."]]},
  {n:"DVD",pick:"NY Giants +2.5 + Devin Singletary +39.5 yds terr",v:"miss",final:"Giants 19 — 11 Eagles",legs:[["ok","Hándicap NY Giants +2.5","Nueva York ganó el partido por 8 en Philadelphia."],["no","Devin Singletary más de 39.5 yds terr","21 acarreos para 31 yardas, 0 TD — se quedó a 8.5 yardas."]]},
@@ -1264,6 +1269,18 @@ document.addEventListener("click",function(e){
   if(!b){return;}
   toggleGame(b.getAttribute("data-game"),b.classList.contains("news-card"));
 });
+/* Texto del pick transcrito bajo "Ver información" en cada tarjeta de
+   Seguimiento de noticias, según la persona asignada al partido. */
+document.querySelectorAll(".news-card").forEach(function(card){
+  var who=card.querySelector(".who");
+  if(!who){return;}
+  var member=who.textContent.trim().toUpperCase();
+  var text=PICK_TEXTS[CURRENT_WEEK+"_"+member]||"";
+  var el=document.createElement("span");
+  el.className="news-pick"+(text?"":" pending");
+  el.textContent=text||"Pick pendiente";
+  card.appendChild(el);
+});
 var HERO_DEFAULT=null;
 (function(){
   var hp=document.getElementById("heroImg");
@@ -1486,7 +1503,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
   var info=currentPickWeek();
   if(weekEl){weekEl.textContent="Semana "+info.week+" · "+info.dateLabel;}
 
-  var PICK_TEXTS={};
+  var PICK_TEXTS=window.PICK_TEXTS||{};
   function pickTextFor(member,data){
     if(data&&data.pickText){return data.pickText;}
     return PICK_TEXTS[info.week+"_"+member]||"";
