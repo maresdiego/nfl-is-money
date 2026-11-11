@@ -1486,7 +1486,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
   var info=currentPickWeek();
   if(weekEl){weekEl.textContent="Semana "+info.week+" · "+info.dateLabel;}
 
-  var PICK_TEXTS={"10_MARES":"Atlanta Falcons ganador (incl. prórroga) +160 vs KC Chiefs"};
+  var PICK_TEXTS={};
   function pickTextFor(member,data){
     if(data&&data.pickText){return data.pickText;}
     return PICK_TEXTS[info.week+"_"+member]||"";
