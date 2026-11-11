@@ -26,8 +26,9 @@
       weekDate:    string,  // YYYY-MM-DD del domingo de esa semana, ej. "2026-11-22"
       imageBase64: string,  // data URL JPEG (ancho máx. 1200 px, calidad 0.8)
       createdAt:   timestamp (serverTimestamp)
-      email:       string   // correo del usuario que mandó el pick
     }
+    (Sin correo en el documento: el correo vive en Auth, y los picks se
+    leen en público en la página principal para mostrar los recibidos.)
     Regla: un pick por persona por semana. Antes de guardar se lee el
     documento; si existe, no se guarda otro.
   Para leer los picks de una semana (el agente, después del cierre):
@@ -469,8 +470,7 @@ $("sendBtn").addEventListener("click", async () => {
       week: week.n,
       weekDate: week.date,
       imageBase64: compressedDataUrl,
-      createdAt: serverTimestamp(),
-      email: currentUser.email
+      createdAt: serverTimestamp()
     });
     showMsg($("pickMsg"), "¡Pick recibido!", "ok");
     await refreshPickState();
