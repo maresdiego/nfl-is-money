@@ -362,20 +362,12 @@ button.news-card[aria-expanded="true"]{border-color:var(--navy)}
 .prc-grid:empty{margin-top:0}
 @media(min-width:820px){.prc-grid{grid-template-columns:repeat(4,1fr)}}
 .prc-card{border:1px solid var(--line);border-top:3px solid var(--navy);border-radius:10px;overflow:hidden;background:var(--surface2);display:flex;flex-direction:column}
-.prc-card.open{border-color:var(--navy);background:var(--surface)}
-.prc-toggle{font:inherit;text-align:left;width:100%;cursor:pointer;background:transparent;border:0;color:var(--ink);display:flex;flex-direction:column;gap:9px;padding:10px;-webkit-tap-highlight-color:transparent}
-.prc-toggle:active{transform:scale(.98)}
+.prc-body{padding:10px;display:flex;flex-direction:column;gap:9px}
 .prc-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .prc-member{font-family:"Barlow Condensed",sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--navy);padding:3px 8px;border-radius:3px;line-height:1.25}
 .prc-badge{font-family:"JetBrains Mono",monospace;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--green);color:#fff;padding:3px 6px;border-radius:5px;white-space:nowrap}
-.prc-picktext{font-size:15px;font-weight:600;line-height:1.35}
-.prc-cta{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--redtx);display:flex;align-items:center;justify-content:space-between;gap:6px;border-top:1px solid var(--line);padding-top:7px;width:100%}
-.prc-chev{transition:transform .18s ease;flex:0 0 auto}
-.prc-toggle[aria-expanded="true"] .prc-chev{transform:rotate(180deg)}
-.prc-shot{border-top:1px solid var(--line)}
-.prc-shot[hidden]{display:none}
-.prc-shot img{width:100%;height:auto;display:block;background:#fff}
-.prc-static{padding:10px;display:flex;flex-direction:column;gap:9px}
+.prc-picktext{font-size:15px;font-weight:600;line-height:1.35;border-top:1px solid var(--line);padding-top:7px}
+.prc-time{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-align:center}
 .prc-error{margin:12px 0 0;font-size:14.5px;color:var(--redtx);font-weight:600}
 .prc-error[hidden]{display:none}
 .prc-refresh{font-family:"JetBrains Mono",monospace;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--surface);color:var(--navy);border:1.5px solid var(--navy);border-radius:6px;padding:8px 11px;min-height:38px;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
@@ -1508,6 +1500,33 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
     if(data&&data.pickText){return data.pickText;}
     return PICK_TEXTS[info.week+"_"+member]||"";
   }
+  /* Partido asignado a cada miembro de la semana en curso y su hora, para
+     mostrarlo en la tarjeta igual que en "Seguimiento de noticias" de
+     Partidos de la semana: logos, abreviaturas con "@" y hora. */
+  var ASSIGNED_GAMES={};
+  (function(){
+    var fallback={
+      "BER":["BUF","NYJ","DOM 12:00 PM"],
+      "CORREA":["SF","DAL","DOM 3:25 PM"],
+      "BUJA":["MIN","GB","DOM 12:00 PM"],
+      "MARES":["HOU","CLE","DOM 12:00 PM"],
+      "MONROY":["PIT","CIN","DOM 7:20 PM"],
+      "PALA":["KC","ATL","DOM 12:00 PM"],
+      "DVD":["LAR","ARI","DOM 3:05 PM"],
+      "EMI":["JAX","TEN","DOM 12:00 PM"]
+    };
+    var rows=null;
+    try{rows=window.PARTIDOS_ASIGNADOS&&window.PARTIDOS_ASIGNADOS[String(info.week)];}catch(e){}
+    if(rows&&rows.length){
+      rows.forEach(function(r){
+        var t="";
+        try{var gi=window.GAME_INFO&&window.GAME_INFO[r[1]+"@"+r[2]];if(gi&&gi.time){t="DOM "+gi.time;}}catch(e){}
+        ASSIGNED_GAMES[r[0]]={away:r[1],home:r[2],time:t};
+      });
+    }else if(info.week===10){
+      Object.keys(fallback).forEach(function(m){var f=fallback[m];ASSIGNED_GAMES[m]={away:f[0],home:f[1],time:f[2]};});
+    }
+  })();
   var byMember={};
   var loadOk=false;
   var loadFailed=false;
@@ -1538,6 +1557,8 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
       var text=pickTextFor(member,data);
       var card=document.createElement("div");
       card.className="prc-card";
+      var body=document.createElement("div");
+      body.className="prc-body";
       var top=document.createElement("span");
       top.className="prc-top";
       var name=document.createElement("span");
@@ -1548,58 +1569,46 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
       badge.textContent="Recibido";
       top.appendChild(name);
       top.appendChild(badge);
-      var pickEl=null;
+      body.appendChild(top);
+      var game=ASSIGNED_GAMES[member];
+      if(game){
+        var match=document.createElement("span");
+        match.className="news-match";
+        [game.away,game.home].forEach(function(ab,idx){
+          if(idx===1){
+            var vs=document.createElement("span");
+            vs.className="news-vs";
+            vs.textContent="@";
+            match.appendChild(vs);
+          }
+          var team=document.createElement("span");
+          team.className="news-team";
+          var logo=document.createElement("img");
+          logo.src=""+(TEAM_LOGOS[ab]||'')+"";
+          logo.alt="Logo "+ab;
+          logo.loading="lazy";
+          logo.addEventListener("error",function(){logo.style.display="none";});
+          var abEl=document.createElement("span");
+          abEl.textContent=ab;
+          team.appendChild(logo);
+          team.appendChild(abEl);
+          match.appendChild(team);
+        });
+        body.appendChild(match);
+        if(game.time){
+          var time=document.createElement("span");
+          time.className="prc-time";
+          time.textContent=game.time;
+          body.appendChild(time);
+        }
+      }
       if(text){
-        pickEl=document.createElement("span");
+        var pickEl=document.createElement("span");
         pickEl.className="prc-picktext";
         pickEl.textContent=text;
+        body.appendChild(pickEl);
       }
-      if(data.imageBase64){
-        var shotId="prcShot-"+member;
-        var toggle=document.createElement("button");
-        toggle.type="button";
-        toggle.className="prc-toggle";
-        toggle.setAttribute("aria-expanded","false");
-        toggle.setAttribute("aria-controls",shotId);
-        toggle.setAttribute("aria-label","Ver la captura del pick de "+member+" de la Semana "+info.week);
-        toggle.appendChild(top);
-        if(pickEl){toggle.appendChild(pickEl);}
-        var cta=document.createElement("span");
-        cta.className="prc-cta";
-        var ctaTxt=document.createElement("span");
-        ctaTxt.textContent="Ver captura";
-        var chev=document.createElement("span");
-        chev.className="prc-chev";
-        chev.setAttribute("aria-hidden","true");
-        chev.textContent="▾";
-        cta.appendChild(ctaTxt);
-        cta.appendChild(chev);
-        toggle.appendChild(cta);
-        card.appendChild(toggle);
-        var shot=document.createElement("div");
-        shot.className="prc-shot";
-        shot.id=shotId;
-        shot.hidden=true;
-        var img=document.createElement("img");
-        img.src=data.imageBase64;
-        img.alt="Captura del pick de "+member+" de la Semana "+info.week;
-        img.loading="lazy";
-        shot.appendChild(img);
-        card.appendChild(shot);
-        toggle.addEventListener("click",function(){
-          var open=shot.hidden;
-          shot.hidden=!open;
-          toggle.setAttribute("aria-expanded",open?"true":"false");
-          card.classList.toggle("open",open);
-          ctaTxt.textContent=open?"Ocultar captura":"Ver captura";
-        });
-      }else{
-        var body=document.createElement("div");
-        body.className="prc-static";
-        body.appendChild(top);
-        if(pickEl){body.appendChild(pickEl);}
-        card.appendChild(body);
-      }
+      card.appendChild(body);
       gridEl.appendChild(card);
     });
   }
