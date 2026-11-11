@@ -148,8 +148,8 @@
     </form>
 
     <form id="loginForm" class="hidden" autocomplete="off">
-      <label for="logEmail">Correo</label>
-      <input type="email" id="logEmail" placeholder="tu@correo.com" autocomplete="email">
+      <label for="logEmail">Correo o usuario</label>
+      <input type="text" id="logEmail" placeholder="tu@correo.com o user" autocomplete="username">
       <label for="logPass">Contraseña</label>
       <input type="password" id="logPass" placeholder="Tu contraseña" autocomplete="current-password">
       <button type="submit" class="btn" id="loginBtn">Entrar</button>
@@ -161,6 +161,10 @@
   <!-- VISTA: FORMULARIO DE PICK -->
   <div class="card hidden" id="pickView">
     <p class="whoami" id="whoamiLine"></p>
+    <div id="viewerWrap" class="hidden">
+      <p class="small" style="font-size:15px;color:#013369;font-weight:700;margin-top:12px;">Entraste como espectador: puedes ver la página pero no mandar picks.</p>
+      <a href="https://maresdiego.github.io/nfl-is-money/" class="btn" style="display:block;text-align:center;text-decoration:none;line-height:50px;">Ver la página</a>
+    </div>
     <div id="pickFormWrap">
       <label for="fileInput" class="filebtn" id="fileBtn">📷 Elegir captura de mi pick</label>
       <input type="file" id="fileInput" accept="image/*">
@@ -321,8 +325,10 @@ $("registerForm").addEventListener("submit", async (e) => {
 /* ---------- Login / logout ---------- */
 $("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const email = $("logEmail").value.trim();
+  let email = $("logEmail").value.trim();
   const pass = $("logPass").value;
+  // El espectador entra con el usuario "user" (sin correo).
+  if (email.toLowerCase() === "user") email = "user@nfl-is-money.local";
   const btn = $("loginBtn");
   if (!email || !pass) return showMsg($("authMsg"), "Escribe tu correo y tu contraseña.", "err");
   btn.disabled = true; btn.textContent = "Entrando…";
@@ -354,9 +360,18 @@ onAuthStateChanged(auth, async (user) => {
     $("pickView").classList.add("hidden");
     return;
   }
-  currentMember = userDoc.data().member;
+  const userData = userDoc.data();
+  currentMember = userData.member;
   $("authView").classList.add("hidden");
   $("pickView").classList.remove("hidden");
+  // El espectador solo puede ver, no manda picks.
+  if (userData.role === "viewer") {
+    $("whoamiLine").textContent = `Hola, ${currentMember} (espectador)`;
+    $("viewerWrap").classList.remove("hidden");
+    $("pickFormWrap").classList.add("hidden");
+    $("alreadySentWrap").classList.add("hidden");
+    return;
+  }
   $("whoamiLine").textContent = `Hola, ${currentMember}`;
   await refreshPickState();
 });

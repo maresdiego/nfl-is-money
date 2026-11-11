@@ -1059,8 +1059,8 @@ Los que sí pegaron: Emi sobrado con Douglas en 70, Ber con Houston ganando por 
     <button type="submit" class="q-btn" id="qRegisterBtn">Crear mi cuenta</button>
   </form>
   <form id="qLoginForm" hidden autocomplete="off">
-    <label for="qLogEmail">Correo</label>
-    <input type="email" id="qLogEmail" placeholder="tu@correo.com" autocomplete="email">
+    <label for="qLogEmail">Correo o usuario</label>
+    <input type="text" id="qLogEmail" placeholder="tu@correo.com o user" autocomplete="username">
     <label for="qLogPass">Contraseña</label>
     <input type="password" id="qLogPass" placeholder="Tu contraseña" autocomplete="current-password">
     <button type="submit" class="q-btn" id="qLoginBtn">Entrar</button>
@@ -1074,6 +1074,7 @@ Los que sí pegaron: Emi sobrado con Douglas en 70, Ber con Houston ganando por 
     <p class="q-whoami" id="qWhoamiLine"></p>
     <p class="q-count" id="qCounterLine">Llevas 0/14</p>
     <p class="q-received" id="qReceivedLine">Quinielas recibidas: 0/8</p>
+    <p class="q-received" id="qViewerNote" hidden>Modo espectador: solo lectura. Puedes ver la Tabla y los Picks de todos.</p>
     <button type="button" class="q-btn ghost" id="qLogoutBtn">Salir</button>
   </div>
   <div class="q-tabs">
@@ -1407,14 +1408,14 @@ function renderScores(w){
 var PARTIDOS_ASIGNADOS={"10":[["BER","BUF","NYJ"],["CORREA","SF","DAL"],["BUJA","MIN","GB"],["MARES","HOU","CLE"],["MONROY","PIT","CIN"],["PALA","KC","ATL"],["DVD","LAR","ARI"],["EMI","JAX","TEN"]]};
 var GAME_INFO={"BUF@NYJ":{"id":"401873054","who":"BER","time":"12:00 PM","venue":"MetLife Stadium","tv":"CBS","away":{"ab":"BUF","rec":"7-1","open":"-7 (-110)","spread":"-8.5 (-110)","total":"o50.5 (-115)","ml":"-485","pred":82.8,"last5":[["11/9","@","MIN","G","23-6"],["11/1","vs","BAL","G","36-10"],["10/18","@","LV","G","33-30"],["10/12","@","LAR","G","37-34 OT"],["10/4","vs","NE","P","29-26"]]},"home":{"ab":"NYJ","rec":"2-7","open":"u46.5 (-110)","spread":"+8.5 (-110)","total":"u50.5 (-105)","ml":"+370","pred":17.1,"last5":[["11/8","@","KC","P","35-12"],["11/1","vs","LV","P","38-33"],["10/25","vs","MIA","P","28-25"],["10/18","@","NE","P","26-19"],["10/11","vs","CLE","G","17-12"]]}},"SF@DAL":{"id":"401873063","who":"CORREA","time":"3:25 PM","venue":"AT&T Stadium","tv":"Fox","away":{"ab":"SF","rec":"7-1","open":"o52.5 (-110)","spread":"-3.5 (-115)","total":"o55.5 (-115)","ml":"-205","pred":63.7,"last5":[["11/8","vs","LV","G","38-17"],["10/25","@","ATL","P","29-20"],["10/19","vs","WSH","G","23-17"],["10/11","@","SEA","G","32-29"],["10/4","vs","DEN","G","24-14"]]},"home":{"ab":"DAL","rec":"4-5","open":"-1.5 (-105)","spread":"+3.5 (-105)","total":"u55.5 (-105)","ml":"+170","pred":36.0,"last5":[["11/8","@","IND","G","27-23"],["11/1","vs","ARI","P","33-30 OT"],["10/26","@","PHI","G","38-21"],["10/18","@","GB","P","23-13"],["10/8","vs","TB","P","24-16"]]}},"MIN@GB":{"id":"401873060","who":"BUJA","time":"12:00 PM","venue":"Lambeau Field","tv":"Fox","away":{"ab":"MIN","rec":"6-2","open":"o45.5 (-110)","spread":"+3.5 (-110)","total":"o41.5 (-115)","ml":"+142","pred":43.9,"last5":[["11/9","vs","BUF","P","23-6"],["11/1","@","DET","P","19-15"],["10/25","vs","IND","G","16-10"],["10/11","@","NO","G","23-13"],["10/4","vs","MIA","G","15-10"]]},"home":{"ab":"GB","rec":"6-3","open":"-4.5 (-110)","spread":"-3.5 (-110)","total":"u41.5 (-105)","ml":"-170","pred":55.7,"last5":[["11/8","@","NE","G","45-27"],["10/29","vs","CAR","G","27-19"],["10/25","@","DET","P","20-17"],["10/18","vs","DAL","G","23-13"],["10/11","vs","CHI","G","31-7"]]}},"HOU@CLE":{"id":"401873056","who":"MARES","time":"12:00 PM","venue":"Huntington Bank Field","tv":"Fox","away":{"ab":"HOU","rec":"3-5","open":"-4.5 (-110)","spread":"-4.5 (-115)","total":"o39.5 (-112)","ml":"-225","pred":76.1,"last5":[["11/8","@","LAC","G","44-22"],["10/25","vs","NYG","P","27-21 OT"],["10/18","vs","JAX","G","34-31"],["10/11","@","TEN","G","26-3"],["10/4","vs","DAL","P","34-30"]]},"home":{"ab":"CLE","rec":"5-4","open":"u38.5 (-110)","spread":"+4.5 (-105)","total":"u39.5 (-108)","ml":"+185","pred":23.7,"last5":[["11/8","@","NO","P","23-22 OT"],["11/1","@","PIT","P","27-6"],["10/25","@","TEN","G","27-24"],["10/18","vs","BAL","G","13-10"],["10/11","@","NYJ","P","17-12"]]}},"PIT@CIN":{"id":"401873064","who":"MONROY","time":"7:20 PM","venue":"Paycor Stadium","tv":"NBC","away":{"ab":"PIT","rec":"6-2","open":"o47.5 (-110)","spread":"+3.5 (-110)","total":"o49.5 (-105)","ml":"+150","pred":29.3,"last5":[["11/1","vs","CLE","G","27-6"],["10/25","vs","NO","G","16-10"],["10/18","@","TB","G","26-19 OT"],["10/11","vs","IND","G","34-22"],["10/1","@","CLE","P","27-24"]]},"home":{"ab":"CIN","rec":"6-2","open":"-3.5 (-110)","spread":"-3.5 (-110)","total":"u49.5 (-115)","ml":"-180","pred":70.4,"last5":[["11/8","vs","ATL","G","34-17"],["11/1","vs","TEN","G","43-36 OT"],["10/25","@","BAL","G","35-13"],["10/11","@","MIA","G","31-24"],["10/4","vs","JAX","P","22-17"]]}},"KC@ATL":{"id":"401873058","who":"PALA","time":"12:00 PM","venue":"Mercedes-Benz Stadium","tv":"CBS","away":{"ab":"KC","rec":"6-2","open":"-4.5 (-110)","spread":"-3.5 (-102)","total":"o45.5 (-105)","ml":"-180","pred":78.1,"last5":[["11/8","vs","NYJ","G","35-12"],["11/1","@","DEN","P","28-24"],["10/25","@","SEA","P","20-3"],["10/18","vs","LAC","G","22-6"],["10/4","@","LV","G","30-27"]]},"home":{"ab":"ATL","rec":"3-6","open":"u45.5 (-110)","spread":"+3.5 (-118)","total":"u45.5 (-115)","ml":"+150","pred":21.7,"last5":[["11/8","vs","CIN","P","34-17"],["11/1","@","TB","P","16-0"],["10/25","vs","SF","G","29-20"],["10/18","vs","CHI","P","31-23"],["10/11","vs","BAL","P","30-23 OT"]]}},"LAR@ARI":{"id":"401873061","who":"DVD","time":"3:05 PM","venue":"State Farm Stadium","tv":"CBS","away":{"ab":"LAR","rec":"5-4","open":"-10.5 (-110)","spread":"-9.5 (-112)","total":"o39.5 (-108)","ml":"-425","pred":87.4,"last5":[["11/8","@","WSH","G","20-13"],["11/1","vs","LAC","G","24-9"],["10/25","@","LV","G","35-21"],["10/18","vs","ARI","P","18-16"],["10/12","vs","BUF","P","37-34 OT"]]},"home":{"ab":"ARI","rec":"3-6","open":"u47.5 (-110)","spread":"+9.5 (-108)","total":"u39.5 (-112)","ml":"+330","pred":12.5,"last5":[["11/8","@","SEA","P","17-3"],["11/1","@","DAL","G","33-30 OT"],["10/25","vs","DEN","P","30-16"],["10/18","@","LAR","G","18-16"],["10/11","vs","DET","P","45-21"]]}},"JAX@TEN":{"id":"401873057","who":"EMI","time":"12:00 PM","venue":"Nissan Stadium","tv":"Fox","away":{"ab":"JAX","rec":"6-2","open":"-2.5 (-110)","spread":"-10.5 (-108)","total":"o46.5 (-110)","ml":"-600","pred":83.9,"last5":[["11/5","@","BAL","G","33-10"],["11/1","vs","IND","G","42-7"],["10/18","vs","HOU","P","34-31"],["10/11","vs","PHI","G","19-17"],["10/4","@","CIN","G","22-17"]]},"home":{"ab":"TEN","rec":"1-7","open":"u45.5 (-110)","spread":"+10.5 (-112)","total":"u46.5 (-110)","ml":"+440","pred":15.9,"last5":[["11/1","@","CIN","P","43-36 OT"],["10/25","vs","CLE","P","27-24"],["10/18","@","IND","G","26-20"],["10/11","vs","HOU","P","26-3"],["10/4","@","BAL","P","24-18"]]}}};
 var GAME_PREVIO={
-"BUF@NYJ":{"tag":"Paliza probable · BUF -8.5","cls":"paliza","lines":[["Contexto","Buffalo es el mejor equipo de la AFC ahora mismo, con la ofensiva #1 en puntos; los Jets llegan hundidos."],["Regresos","Breece Hall (NYJ) ya volvió en Semana 9 tras 5 partidos fuera por el cuádriceps; Garrett Wilson (NYJ, conmoción) se espera que regrese esta semana."],["Lesiones","BUF — Dion Dawkins (OT, costillas) TBD, Alec Anderson (G, tobillo) TBD, Christian Benford (CB, muñeca) se lastimó vs MIN. NYJ — Joseph Ossai (DE, tobillo) TBD, Nahshon Wright (CB, espalda) TBD."],["Rachas","BUF, 4 victorias seguidas; NYJ, 4 derrotas seguidas."],["Clave","Buffalo jugó el lunes por la noche en Minnesota —semana corta— y aun así es favorito por más de un touchdown."]]},
-"SF@DAL":{"tag":"Muy cerrado · SF -3.5","cls":"cerrado","lines":[["Contexto","SF solo ha perdido una vez, en Atlanta; Dallas es irregular, pero viene de ganar dramáticamente en Indianapolis."],["Regreso","Deebo Samuel (WR, SF, hamstring) va en camino de volver a entrenar el miércoles tras perderse la Semana 9: es el regreso más importante del partido."],["Lesiones","SF — Mike Evans (WR, Aquiles y costillas) TBD, sin jugar desde la Semana 6. DAL — Jake Ferguson (TE, rodilla) FUERA varias semanas, Tyler Goodson (RB, rodilla) FUERA, George Pickens (WR, hamstring) TBD."],["Rachas","SF, 4-1 en sus últimos 5; DAL, 2-3."],["Clave","Dallas llega muy golpeado; su probabilidad de playoffs es de 35% y cada partido ya es casi eliminatorio."]]},
-"MIN@GB":{"tag":"Muy cerrado · GB -3.5","cls":"cerrado","lines":[["Contexto","Duelo divisional por el liderato de la NFC Norte; Minnesota ganó el primer enfrentamiento 39-22 en la Semana 1."],["Cambio de QB","Kirk Cousins fue traspasado de los Raiders a los Vikings el martes por una selección de tercera ronda de 2027; se reúne con Kevin O'Connell y podría ser titular el domingo en Lambeau. Kyler Murray (hamstring grado 2) está semana a semana y Carson Wentz fue titular el lunes vs BUF con un partido desastroso: 8/25, 81 yds y 2 INT."],["Regreso","Jauan Jennings (WR, MIN, pantorrilla), posible regreso vs GB."],["Lesiones","GB — Josh Jacobs (RB, dedo fracturado) FUERA, con cirugía y hasta 3 semanas fuera; Sean Rhyan (G, tobillo) FUERA al menos un mes. MIN — Josh Oliver (TE, bíceps) fuera toda la temporada."],["Rachas","MIN, 2 derrotas seguidas tras empezar 6-0; GB, 2 victorias seguidas."],["Clave","El traspaso de Cousins es la noticia más grande de la Semana 10 en toda la NFL."]]},
-"HOU@CLE":{"tag":"Favorito moderado · HOU -4.5","cls":"moderado","lines":[["Contexto","Houston es favorito pese a su peor récord: viene de su mejor partido del año y Cleveland suma 2 derrotas seguidas con dudas en QB."],["QB","Deshaun Watson (CLE, conmoción) TBD: ya salió del protocolo, pero el equipo inició a Shedeur Sanders en Semana 9; según ESPN, los Browns planean iniciar a Watson en Semana 10, contra su ex equipo por 2ª vez desde 2021."],["Regreso","David Montgomery (RB, HOU, ingle) TBD; no juega desde la Semana 5."],["Lesiones","HOU — Braden Smith (OT, tobillo) TBD, Reed Blankenship (S, conmoción) TBD. CLE — Raheim Sanders (RB, cadera) en IR."],["Rachas","HOU, 1 victoria: 44-22 en Los Ángeles, con Stroud en 384 yds y 5 TD. CLE, 2 derrotas seguidas."],["Clave","Watson vs su ex equipo es la narrativa personal de la jornada, y la línea ofensiva de Cleveland es un problema serio —Watson ha sido capturado 33 veces— frente a Will Anderson (7.5 capturas)."]]},
-"PIT@CIN":{"tag":"Muy cerrado · CIN -3.5","cls":"cerrado","lines":[["Contexto","El partido de la jornada: empatados 6-2 en la cima de la AFC Norte y el ganador se queda solo con la división. Pittsburgh ganó el primer duelo 30-27."],["QB","Sin cambio. Joe Burrow lidera la liga en pases de TD (23) y en porcentaje de completos (74%)."],["Regreso","Michael Pittman Jr. (WR, PIT, pie) está en IR, ya es elegible y se acerca, pero su ventana de práctica de 21 días todavía no se abre: posibilidad remota para la Semana 10."],["Lesiones","PIT — Brandin Echols (CB, hamstring) TBD. CIN — Kyle Dugger (S, cuádriceps) TBD, Cashius Howell (DE, muñeca) en IR."],["Rachas","Los dos llegan con 4 victorias seguidas."],["Clave","Burrow está en su mejor temporada, pero su defensa contra la carrera es la peor de la liga (5.0 yds por intento) y Jaylen Warren viene corriendo muy bien."]]},
-"KC@ATL":{"tag":"Muy cerrado · KC -3.5","cls":"cerrado","lines":[["Contexto","Cerrado en el spread, pero en direcciones opuestas: KC ganó 35-12 en Semana 9; Atlanta perdió 17-34 en Madrid y va 1-4 en sus últimos 5."],["QB","Sin cambio de titular, pero Mahomes sufrió un esguince en el codo derecho en Semana 9; la resonancia dio noticias positivas y se espera que juegue en Semana 10."],["Regresos","Mansoor Delane (CB, KC, hombro) y Peter Woods (DT, KC, cuello) se espera que regresen en Semana 10."],["Lesiones","KC — Xavier Worthy (WR, hamstring) día a día: en el mejor caso se pierde un par de semanas, en el peor va a IR; Jaylon Moore (OT, tobillo) día a día. ATL — Zachariah Branch (WR, hamstring) TBD, Brian Robinson Jr. (RB, hamstring) en IR."],["Rachas","KC, 1 victoria; ATL, 2 derrotas seguidas, incluido un 0-16 en Tampa."],["Clave","La salud del codo de Mahomes es la historia del partido, y este es el duelo ganable de KC antes de una gira de 3 visitas: BUF, LAR y CIN."]]},
-"LAR@ARI":{"tag":"Paliza probable · LAR -9.5","cls":"paliza","lines":[["Contexto","Arizona ya le ganó a los Rams 18-16 en la Semana 6 en SoFi, pero ahora llega sin QB y sin su mejor receptor; los Rams suman 3 victorias seguidas."],["Cambio de QB","Gardner Minshew (ARZ, codo derecho, UCL roto): se teme que sea fin de temporada y busca más opiniones médicas. Carson Beck, novato de tercera ronda, está en línea para ser titular vs LAR si se confirma: sería su primer inicio en la NFL."],["Regreso","Myles Garrett (OLB, LAR) regresa esta semana; lleva 3.0 capturas en 2 partidos con los Rams."],["Lesiones","LAR — Puka Nacua (WR) FUERA por MCL, PCL y turf toe, al menos un mes; Davante Adams (WR, hamstring) en IR. ARZ — Michael Wilson (WR, fractura de cuello) FUERA TODA LA TEMPORADA, Hjalte Froholdt (C) en protocolo de conmoción."],["Rachas","LAR, 3 victorias seguidas; ARZ, 1 derrota y con la defensa #31 en puntos permitidos."],["Clave","Arizona pierde a su QB y a su mejor receptor en la misma semana… pero ya le ganó a los Rams este año, y los Rams llegan sin sus dos mejores receptores."]]},
-"JAX@TEN":{"tag":"Paliza probable · JAX -10.5","cls":"paliza","lines":[["Contexto","El spread más grande de la jornada. Jacksonville es el mejor de la AFC Sur, con la defensa #2 en puntos; Tennessee es el peor de los 16 de esta previa: 1-7 y ofensiva #28 en puntos. Tennessee tuvo bye en Semana 9 y Jacksonville, que jugó el jueves (33-10 en Baltimore), llega con 10 días de descanso."],["QB","Sin cambio. Trevor Lawrence está en su mejor temporada: 18 TD y 4 INT."],["Regreso","Carnell Tate (WR, TEN, hombro) se espera que regrese tras el bye; es el líder receptor de Tennessee."],["Lesiones","JAX — sin lesiones activas que afecten la alineación. TEN — Tyjae Spears (RB, rodilla) TBD, JC Latham (OT, dedo) TBD, Peter Skoronski (G, hamstring) TBD."],["Rachas","JAX, 2 victorias seguidas; TEN, 2 derrotas seguidas."],["Clave","Jacksonville es hoy el equipo más completo de la AFC. Tennessee traspasó a Jeffery Simmons, su mejor liniero defensivo (4.0 capturas), justo antes de enfrentar a la mejor ofensiva de la división, y Jacksonville sumó al safety Jessie Bates, traspasado por Atlanta el lunes."]]}
+"BUF@NYJ":{"tag":"Posible paliza · BUF -8.5","cls":"paliza","paras":["Posible paliza. Buffalo (7-1) es favorito por -8.5, total 50.5, y llega del Monday Night en Minnesota con la ofensiva más encendida de la AFC.","Los Jets (2-7) vienen de perder 35-12 ante Kansas City sin anotar touchdown; Geno Smith recibió cinco capturas. Garrett Wilson, fuera la semana pasada por lesión, tiene buena probabilidad de volver.","Buffalo juega con semana corta tras el Monday Night de visita, lo que le da aire a los Jets para aguantar el spread, pero la diferencia de talento es enorme."]},
+"SF@DAL":{"tag":"Cerrado y con puntos · SF -3.5","cls":"cerrado","paras":["Partido cerrado y con muchos puntos. San Francisco (7-1) es favorito por -3.5 con total de 55.5, el más alto de la semana. Brock Purdy (17 TD, 5 INT, rating 109.8) está en la pelea por el MVP y viene de ganar 38-17 a los Raiders con Christian McCaffrey anotando por tierra y por aire.","Pero los 49ers llegan diezmados de receptores: Mike Evans (Aquiles) y Deebo Samuel (isquiotibial) están en duda, Christian Kirk y Ricky Pearsall están en IR, y Jordan Watkins fue el receptor líder la semana pasada.","Dallas (4-5) también llega golpeado: sin su ala cerrada Jake Ferguson (rodilla, varias semanas) y con George Pickens (isquiotibial) en duda, aunque CeeDee Lamb viene de 195 yardas recibidas. San Francisco sumó a DeForest Buckner y Keenan Allen en trades."]},
+"MIN@GB":{"tag":"Muy cerrado · GB -3.5","cls":"cerrado","paras":["Partido muy cerrado, duelo divisional por el liderato del NFC Norte. Green Bay (6-3) es favorito por -3.5, total 41.5.","La noticia de la semana: Minnesota (6-2) recuperó a Kirk Cousins en un trade con los Raiders por una selección de tercera ronda y se espera que sea titular el domingo en Lambeau, justo donde se rompió el Aquiles en 2023 en su último juego como Vikingo. Con Las Vegas lanzó 2,340 yardas, 20 touchdowns y 8 intercepciones.","Kyler Murray (isquiotibial grado 2) está fuera y Carson Wentz viene de una actuación desastrosa en el Monday Night ante Buffalo. Green Bay ganó 45-27 a los Patriots en la Semana 9."]},
+"HOU@CLE":{"tag":"Cerrado con morbo · HOU -5.5","cls":"cerrado","paras":["Partido cerrado con morbo. Houston (3-5) es favorito por -5.5, total 39.5, en Cleveland.","Deshaun Watson vuelve como titular ante su ex equipo tras superar el protocolo de conmoción; Shedeur Sanders, que lanzó 297 yardas y 2 touchdowns en la derrota 23-22 en tiempo extra ante los Saints, regresa a la banca. Watson tiene 7 touchdowns y 3 intercepciones con el QBR 28 de la liga, pero ha recibido captura en el 11.7% de sus intentos.","Houston viene de ganar a los Chargers tras su semana de descanso y C.J. Stroud vive una temporada de rebote (7º en QBR). Cleveland (5-4) suma dos derrotas seguidas y entra a su bye después de este juego."]},
+"PIT@CIN":{"tag":"El juego de la semana · CIN -3.5","cls":"cerrado","paras":["El juego de la semana: muy cerrado, en Sunday Night, con el liderato de la AFC Norte en juego. Cincinnati (6-2) es favorito por -3.5, total 49.5. Ambos llegan con cuatro victorias seguidas.","Joe Burrow lidera la NFL con 23 pases de touchdown y 298.3 yardas por juego; viene de su cuarto juego seguido con 4 o más touchdowns en la victoria 34-17 ante Atlanta en Madrid. Los Bengals anotaron 240 puntos, la mayor cantidad de la AFC.","Pittsburgh (6-2) llega descansado de su bye con la defensa que permitió solo 144 puntos, con 26 capturas y 13 robos de balón; Aaron Rodgers suma 13 touchdowns y 6 intercepciones a los 42 años. Duda en la secundaria de Pittsburgh: el esquinero Brandin Echols (isquiotibial) está en duda."]},
+"KC@ATL":{"tag":"Cerrado en el papel · KC -3.5","cls":"cerrado","paras":["Partido cerrado en el papel (-3.5), pero con Kansas City claramente superior. Los Chiefs (6-2) visitan Atlanta (3-6) como favoritos por -3.5, total 45.5.","Patrick Mahomes sufrió un esguince en el codo derecho ante los Jets, pero el MRI no mostró daño mayor y se espera que juegue; está día a día y su suplente sería Justin Fields. Mahomes lanzó 2 touchdowns a Kenneth Walker III en la victoria 35-12 ante los Jets.","Atlanta perdió 34-17 ante Cincinnati en Madrid y 0-16 en Tampa: solo 17 puntos en sus últimos dos juegos y cuatro derrotas en sus últimos cinco. Michael Penix Jr. fue presionado todo el juego en Madrid; Bijan Robinson (880 yardas, 5 touchdowns) es su mejor arma. Kansas City ha perdido sus últimos dos juegos de visita."]},
+"LAR@ARI":{"tag":"Posible paliza · LAR -9.5","cls":"paliza","paras":["Posible paliza. Los Rams (5-4) son favoritos por -9.5, total 39.5 (bajó de 47.5), en Arizona.","La historia es el debut del novato Carson Beck: Gardner Minshew fue a la reserva de lesionados por rotura del ligamento colateral cubital del codo y se perderá la temporada; Beck, selección de tercera ronda, hará su primer inicio en la NFL y no juega desde el Hall of Fame Game. Tampoco tendrá a su receptor líder Michael Wilson, fuera por la temporada por una fractura de cuello; Trey McBride queda como su objetivo principal.","Enfrente estarán Myles Garrett, que volvió de la reserva de lesionados con 3 capturas ante Washington, y Aaron Donald. Los Rams llevan tres victorias seguidas y su juego terrestre promedia 4.8 yardas por acarreo, pero no tendrán a Puka Nacua (rodilla, probablemente a la reserva de lesionados, al menos 4 semanas) ni a Davante Adams (IR). Arizona ganó el primer duelo 18-16 en la Semana 6 y suma 10 derrotas seguidas en casa."]},
+"JAX@TEN":{"tag":"Posible paliza · JAX -10.5","cls":"paliza","paras":["Posible paliza: el spread más grande de la semana. Jacksonville (6-2, líder de la AFC Sur) es favorito por -10.5, total 46.5, en Tennessee.","Los Jaguars anotan 28.6 puntos por juego (4º de la NFL) y permiten solo 15.1 (2º); vienen de ganar 33-10 a Baltimore y han ganado 5 de los últimos 6 ante los Titans, a quienes superaron 66-10 en los dos juegos de 2025. Su defensa es 3ª en la liga con 11 intercepciones.","Tennessee (1-7) no ha ganado en casa (0-4), anota apenas 18 puntos por juego (28º) y viene de su semana de descanso tras tres juegos seguidos definidos por una posesión; además no tendrá a sus receptores Elic Ayomanor y Carnell Tate."]}
 };
 function renderPartidos(){
   var w=String(CURRENT_WEEK);
@@ -1459,7 +1460,7 @@ function gpPredRow(t,fav){
 }
 function gpPrevioHtml(key){
   var pv=(typeof GAME_PREVIO!=="undefined")?GAME_PREVIO[key]:null; if(!pv){return "";}
-  var lines=pv.lines.map(function(l){return '<p><b>'+l[0]+':</b> '+l[1]+'</p>';}).join("");
+  var lines=pv.paras?pv.paras.map(function(p){return '<p>'+p+'</p>';}).join(""):pv.lines.map(function(l){return '<p><b>'+l[0]+':</b> '+l[1]+'</p>';}).join("");
   return '<h4 class="gp-sec">Análisis previo</h4><div class="gp-prev"><span class="gp-tag '+pv.cls+'">'+pv.tag+'</span>'+lines+'</div>';
 }
 function renderPanel(key){
@@ -2206,7 +2207,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
     {id:"B25",q:"¿Correrá algún RB más de 150 yardas en un partido?",opts:["Sí","No"],pts:"+3 / -2"},
     {id:"B27",q:"¿Habrá al menos 2 partidos con más de 55 puntos combinados?",opts:["Sí","No"],pts:"+3 / -2"}
   ];
-  var currentUser=null,currentMember=null,myPicks={},myBonus={},allQuinielas=[],results=null;
+  var currentUser=null,currentMember=null,isViewer=false,myPicks={},myBonus={},allQuinielas=[],results=null;
 
   /* Pestañas de acceso */
   $("qTabRegister").addEventListener("click",function(){
@@ -2256,11 +2257,14 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
   /* Entrar / salir */
   $("qLoginForm").addEventListener("submit",function(e){
     e.preventDefault();
-    var email=$("qLogEmail").value.trim(),pass=$("qLogPass").value,btn=$("qLoginBtn");
-    if(!email||!pass){showMsg($("qAuthMsg"),"Escribe tu correo y tu contraseña.","err");return;}
+    var rawLogin=$("qLogEmail").value.trim(),pass=$("qLogPass").value,btn=$("qLoginBtn");
+    if(!rawLogin||!pass){showMsg($("qAuthMsg"),"Escribe tu correo o usuario y tu contraseña.","err");return;}
+    /* Cuenta espectadora: se entra solo con el usuario (p. ej. "user"),
+       sin correo; se mapea al correo interno <usuario>@nfl-is-money.local */
+    var email=rawLogin.indexOf("@")<0?rawLogin.toLowerCase()+"@nfl-is-money.local":rawLogin;
     btn.disabled=true;btn.textContent="Entrando…";
     auth.signInWithEmailAndPassword(email,pass).catch(function(){
-      showMsg($("qAuthMsg"),"Correo o contraseña incorrectos.","err");
+      showMsg($("qAuthMsg"),"Correo, usuario o contraseña incorrectos.","err");
     }).then(function(){btn.disabled=false;btn.textContent="Entrar";});
   });
   $("qLogoutBtn").addEventListener("click",function(){auth.signOut();});
@@ -2270,7 +2274,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
     currentUser=user;
     hideMsg($("qAuthMsg"));hideMsg($("qSaveMsg"));
     if(!user){
-      currentMember=null;myPicks={};myBonus={};
+      currentMember=null;isViewer=false;myPicks={};myBonus={};
       authView.hidden=false;mainView.hidden=true;
       return;
     }
@@ -2280,11 +2284,20 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
         authView.hidden=false;mainView.hidden=true;
         return;
       }
-      currentMember=userDoc.data().member;
+      var userData=userDoc.data();
+      currentMember=userData.member;
+      /* Espectador: su documento en users trae role "viewer" (member "user").
+         Solo lectura: ve la Tabla y los Picks de todos, sin elegir ni guardar. */
+      isViewer=(userData.role==="viewer")||(String(currentMember).toLowerCase()==="user");
       authView.hidden=true;mainView.hidden=false;
       $("qWhoamiLine").textContent="Hola, "+currentMember;
+      var viewerNote=$("qViewerNote");
+      if(viewerNote){viewerNote.hidden=!isViewer;}
+      var saveBtn=$("qSaveBtn");
+      if(saveBtn){saveBtn.style.display=isViewer?"none":"";saveBtn.disabled=isViewer;}
       loadMine().then(loadAll).then(function(){
         renderGames();renderBonus();renderTable();renderAll();
+        if(isViewer){showPane("Table");}
       });
     }).catch(function(){
       showMsg($("qAuthMsg"),"No se pudo cargar tu cuenta. Inténtalo de nuevo.","err");
@@ -2310,6 +2323,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
 
   /* Mis picks */
   function updateCounter(){
+    if(isViewer){$("qCounterLine").textContent="Modo espectador · Solo lectura";return;}
     var n=0;
     GAMES.forEach(function(g){if(myPicks[g.id]){n++;}});
     $("qCounterLine").textContent="Llevas "+n+"/14";
@@ -2324,12 +2338,12 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
         h.className="q-group";h.textContent=g.group;
         wrap.appendChild(h);lastGroup=g.group;
       }
-      var locked=quinielaClosed();
+      var locked=quinielaClosed()||isViewer;
       var card=document.createElement("div");
       card.className="q-game"+(locked?" locked":"");
       var meta=document.createElement("div");
       meta.className="q-game-meta";
-      meta.innerHTML="<span>"+qEsc(g.id)+" · "+qEsc(g.away)+" @ "+qEsc(g.home)+"</span>"+(locked?'<span class="q-closed-tag">Cerrado</span>':'<span class="q-open-tag">Abierto</span>');
+      meta.innerHTML="<span>"+qEsc(g.id)+" · "+qEsc(g.away)+" @ "+qEsc(g.home)+"</span>"+(quinielaClosed()?'<span class="q-closed-tag">Cerrado</span>':'<span class="q-open-tag">Abierto</span>');
       card.appendChild(meta);
       var teams=document.createElement("div");
       teams.className="q-teams";
@@ -2351,7 +2365,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
         var nm=document.createElement("span");
         nm.className="q-tname";nm.textContent=pair[1];
         b.appendChild(img);b.appendChild(ab);b.appendChild(nm);
-        b.addEventListener("click",function(){myPicks[g.id]=abbr;renderGames();});
+        b.addEventListener("click",function(){if(isViewer){return;}myPicks[g.id]=abbr;renderGames();});
         teams.appendChild(b);
       });
       card.appendChild(teams);
@@ -2361,7 +2375,8 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
     var closed=quinielaClosed();
     var badge=$("qStatusBadge");
     if(badge){badge.textContent=closed?"Cerrada":"Abierta";badge.className="q-badge"+(closed?" closed":"");}
-    $("qSaveBtn").disabled=closed;
+    $("qSaveBtn").disabled=closed||isViewer;
+    $("qSaveBtn").style.display=isViewer?"none":"";
   }
   /* Preguntas bonus */
   function updateBonusCounter(){
@@ -2374,7 +2389,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
     var wrap=$("qBonusWrap");
     if(!wrap){return;}
     wrap.innerHTML="";
-    var locked=quinielaClosed();
+    var locked=quinielaClosed()||isViewer;
     BONUS.forEach(function(b){
       var card=document.createElement("div");
       card.className="q-bonus-q"+(locked?" locked":"");
@@ -2396,7 +2411,7 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
         btn.setAttribute("aria-pressed",myBonus[b.id]===opt?"true":"false");
         btn.setAttribute("aria-label",b.q+" — "+opt);
         btn.textContent=opt;
-        btn.addEventListener("click",function(){myBonus[b.id]=opt;renderBonus();});
+        btn.addEventListener("click",function(){if(isViewer){return;}myBonus[b.id]=opt;renderBonus();});
         opts.appendChild(btn);
       });
       card.appendChild(opts);
@@ -2407,6 +2422,10 @@ if(bigHomeBtn){bigHomeBtn.addEventListener("click",function(){
   /* Guardar */
   $("qSaveBtn").addEventListener("click",function(){
     if(!currentUser||!currentMember){return;}
+    if(isViewer){
+      showMsg($("qSaveMsg"),"Modo espectador: tu cuenta es de solo lectura y no puede guardar picks.","err");
+      return;
+    }
     var btn=$("qSaveBtn");
     if(quinielaClosed()){
       showMsg($("qSaveMsg"),"La quiniela ya cerró: el TNF ya empezó y no se puede cambiar ningún pick.","err");
