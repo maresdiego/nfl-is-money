@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  MANDA TU PICK — NFL IS MONEY
+  App de picks del grupo. Un solo archivo, se hospeda en GitHub Pages.
+  Usa Firebase (Auth + Firestore). NO usa Firebase Storage.
+  Las capturas se guardan comprimidas como base64 dentro de Firestore.
+  Solo se guarda el pick de la semana en curso; las capturas de semanas
+  anteriores se eliminan después del reporte del domingo (no hay vista
+  de historial en esta app).
+  ----------------------------------------------------------------------------
+  FIRESTORE — proyecto: nfl-is-money-picks
+  Colección `users` — un documento por cuenta, ID = uid de Auth:
+    users/{uid} = {
+      member:    string,  // uno de MARES, PALA, BER, DVD, EMI, MONROY, BUJA, CORREA
+      createdAt: timestamp (serverTimestamp)
+    }
+    (El correo vive en Auth, no en este documento, para no exponerlo.)
+    Regla: un nombre de miembro solo puede estar en UN documento. Antes de
+    crear la cuenta se consulta users where member == <nombre>; si ya existe,
+    no se crea la cuenta.
+  Colección `picks` — un documento por pick, ID = ${week}_${member}:
+    picks/11_BER = {
+      member:      string,  // nombre del miembro, ej. "BER"
+      week:        number,  // número de semana, ej. 11
+      weekDate:    string,  // YYYY-MM-DD del domingo de esa semana, ej. "2026-11-22"
+      imageBase64: string,  // data URL JPEG (ancho máx. 1200 px, calidad 0.8)
+      createdAt:   timestamp (serverTimestamp)
+      email:       string   // correo del usuario que mandó el pick
+    }
+    Regla: un pick por persona por semana. Antes de guardar se lee el
+    documento; si existe, no se guarda otro.
+  Para leer los picks de una semana (el agente, después del cierre):
+    - getDoc(doc(db, "picks", `${week}_${member}`)) por cada miembro, o
+    - query(collection(db, "picks"), where("week", "==", N)).
+  ============================================================================
+-->
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#013369">
+<title>Manda tu pick — NFL IS MONEY</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: #eef0f3; color: #1a1a1a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  header {
+    background: #013369; color: #fff; text-align: center;
+    padding: 18px 16px 14px; border-bottom: 4px solid #d50a0a;
+    position: sticky; top: 0; z-index: 10;
+  }
+  header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; font-weight: 900; font-style: italic; }
+  header h1 span { color: #ff3b30; }
+  header p { margin: 4px 0 0; font-size: 13px; letter-spacing: 2px; color: #c9d6e4; font-weight: 700; }
+  main { max-width: 480px; margin: 0 auto; padding: 16px 14px 32px; }
+  .card {
+    background: #fff; border-radius: 14px; padding: 18px 16px; margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.10);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 19px; color: #013369; }
+  .weekline { font-size: 15px; font-weight: 700; margin: 2px 0; }
+  .deadline { font-size: 14px; color: #555; margin: 2px 0 0; }
+  .badge {
+    display: inline-block; margin-top: 10px; padding: 5px 12px; border-radius: 999px;
+    font-size: 13px; font-weight: 800; letter-spacing: .5px;
+  }
+  .badge.open { background: #e3f2e6; color: #177245; }
+  .badge.closed { background: #fde8e8; color: #b3261e; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tabs button {
+    flex: 1; min-height: 44px; border: 2px solid #013369; border-radius: 10px;
+    background: #fff; color: #013369; font-size: 15px; font-weight: 800; cursor: pointer;
+  }
+  .tabs button.active { background: #013369; color: #fff; }
+  label { display: block; font-size: 14px; font-weight: 700; margin: 12px 0 5px; color: #333; }
+  input, select {
+    width: 100%; min-height: 48px; padding: 10px 12px; font-size: 16px;
+    border: 1.5px solid #c4ccd4; border-radius: 10px; background: #fff; color: #1a1a1a;
+  }
+  input:focus, select:focus { outline: none; border-color: #013369; box-shadow: 0 0 0 2px rgba(1,51,105,.18); }
+  .btn {
+    width: 100%; min-height: 50px; margin-top: 18px; border: none; border-radius: 10px;
+    background: #013369; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer;
+    touch-action: manipulation;
+  }
+  .btn:active { background: #024a94; }
+  .btn:disabled { background: #9aa7b4; cursor: default; }
+  .btn.red { background: #d50a0a; }
+  .btn.ghost { background: #fff; color: #013369; border: 2px solid #013369; }
+  .filebtn {
+    display: block; text-align: center; padding: 14px 12px; border: 2px dashed #013369;
+    border-radius: 10px; color: #013369; font-weight: 800; font-size: 15px; cursor: pointer;
+    margin-top: 12px; touch-action: manipulation;
+  }
+  #fileInput { display: none; }
+  #preview { display: none; width: 100%; border-radius: 10px; margin-top: 12px; border: 1px solid #dde3e8; }
+  .msg { display: none; border-radius: 10px; padding: 12px; margin-top: 14px; font-size: 14px; line-height: 1.45; }
+  .msg.err { display: block; background: #fde8e8; color: #8f1d17; }
+  .msg.ok { display: block; background: #e3f2e6; color: #145c33; }
+  .msg.info { display: block; background: #e8eef5; color: #013369; }
+  .small { font-size: 13px; color: #666; margin-top: 12px; line-height: 1.45; }
+  .whoami { font-size: 15px; font-weight: 800; color: #013369; }
+  .hidden { display: none !important; }
+  .savedimg { width: 100%; border-radius: 10px; margin-top: 12px; border: 1px solid #dde3e8; }
+  .footer { text-align: center; font-size: 12px; color: #8a97a3; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>NFL <span>IS</span> MONEY</h1>
+  <p>MANDA TU PICK</p>
+</header>
+
+<main>
+  <div class="card">
+    <h2 id="weekTitle">Semana —</h2>
+    <p class="weekline" id="deadlineLine">Cierre: —</p>
+    <span class="badge open" id="statusBadge">Abierto</span>
+  </div>
+
+  <!-- VISTA: REGISTRO / LOGIN -->
+  <div class="card" id="authView">
+    <div class="tabs">
+      <button type="button" id="tabRegister" class="active">Registrarme</button>
+      <button type="button" id="tabLogin">Entrar</button>
+    </div>
+
+    <form id="registerForm" autocomplete="off">
+      <label for="regMember">¿Quién eres?</label>
+      <select id="regMember">
+        <option value="">Elige tu nombre</option>
+        <option>MARES</option><option>PALA</option><option>BER</option><option>DVD</option>
+        <option>EMI</option><option>MONROY</option><option>BUJA</option><option>CORREA</option>
+      </select>
+      <label for="regEmail">Correo</label>
+      <input type="email" id="regEmail" placeholder="tu@correo.com" autocomplete="email">
+      <label for="regPass">Contraseña</label>
+      <input type="password" id="regPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      <label for="regPass2">Repite tu contraseña</label>
+      <input type="password" id="regPass2" placeholder="Repite tu contraseña" autocomplete="new-password">
+      <button type="submit" class="btn" id="registerBtn">Crear mi cuenta</button>
+    </form>
+
+    <form id="loginForm" class="hidden" autocomplete="off">
+      <label for="logEmail">Correo</label>
+      <input type="email" id="logEmail" placeholder="tu@correo.com" autocomplete="email">
+      <label for="logPass">Contraseña</label>
+      <input type="password" id="logPass" placeholder="Tu contraseña" autocomplete="current-password">
+      <button type="submit" class="btn" id="loginBtn">Entrar</button>
+    </form>
+
+    <div class="msg" id="authMsg"></div>
+  </div>
+
+  <!-- VISTA: FORMULARIO DE PICK -->
+  <div class="card hidden" id="pickView">
+    <p class="whoami" id="whoamiLine"></p>
+    <div id="pickFormWrap">
+      <label for="fileInput" class="filebtn" id="fileBtn">📷 Elegir captura de mi pick</label>
+      <input type="file" id="fileInput" accept="image/*">
+      <img id="preview" alt="Vista previa de tu captura">
+      <button type="button" class="btn red" id="sendBtn" disabled>Mandar mi pick</button>
+      <p class="small">Si quieres cambiar tu pick, avísale a Diego.</p>
+    </div>
+    <div id="alreadySentWrap" class="hidden">
+      <p class="small" style="font-size:15px;color:#145c33;font-weight:700;margin-top:12px;">Ya mandaste tu pick esta semana.</p>
+      <img id="savedImg" class="savedimg" alt="Tu pick enviado">
+      <p class="small">Si quieres cambiarlo, avísale a Diego.</p>
+    </div>
+    <div class="msg" id="pickMsg"></div>
+    <button type="button" class="btn ghost" id="logoutBtn">Cerrar sesión</button>
+  </div>
+
+  <p class="footer">NFL IS MONEY · Temporada 2026</p>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-j8L327td3y2zN8KHpN3d1Z1sXQJtY1o",
+  authDomain: "nfl-is-money-picks.firebaseapp.com",
+  projectId: "nfl-is-money-picks",
+  storageBucket: "nfl-is-money-picks.firebasestorage.app",
+  messagingSenderId: "219951751563",
+  appId: "1:219951751563:web:1444579beaa731a42a4f8e"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ---------- Semana en curso (por fecha, hora de Ciudad de México) ---------- */
+const SUNDAYS = [
+  { n: 1,  date: "2026-09-13" }, { n: 2,  date: "2026-09-20" },
+  { n: 3,  date: "2026-09-27" }, { n: 4,  date: "2026-10-04" },
+  { n: 5,  date: "2026-10-11" }, { n: 6,  date: "2026-10-18" },
+  { n: 7,  date: "2026-10-25" }, { n: 8,  date: "2026-11-01" },
+  { n: 9,  date: "2026-11-08" }, { n: 10, date: "2026-11-15" },
+  { n: 11, date: "2026-11-22" }, { n: 12, date: "2026-11-29" },
+  { n: 13, date: "2026-12-06" }, { n: 14, date: "2026-12-13" },
+  { n: 15, date: "2026-12-20" }, { n: 16, date: "2026-12-27" },
+  { n: 17, date: "2027-01-03" }, { n: 18, date: "2027-01-10" }
+];
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+function mxNowParts() {
+  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const p = {};
+  for (const { type, value } of fmt.formatToParts(new Date())) p[type] = value;
+  return { date: `${p.year}-${p.month}-${p.day}`, minutes: (+p.hour) * 60 + (+p.minute) };
+}
+function dateMs(iso) { const [y, m, d] = iso.split("-").map(Number); return Date.UTC(y, m - 1, d); }
+function isoOfMs(ms) { return new Date(ms).toISOString().slice(0, 10); }
+function fechaLarga(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `domingo ${d} de ${MESES[m - 1]} de ${y}`;
+}
+function currentWeek() {
+  const now = mxNowParts();
+  const target = isoOfMs(dateMs(now.date) - 86400000); // hoy menos 1 día
+  const idx = SUNDAYS.findIndex(s => s.date >= target);
+  if (idx === -1) return { ended: true };
+  return { ...SUNDAYS[idx] };
+}
+function isClosed(week) {
+  const now = mxNowParts();
+  if (now.date > week.date) return true;
+  if (now.date === week.date && now.minutes >= 11 * 60 + 45) return true;
+  return false;
+}
+
+const week = currentWeek();
+const $ = id => document.getElementById(id);
+const weekTitle = $("weekTitle"), deadlineLine = $("deadlineLine"), statusBadge = $("statusBadge");
+
+if (week.ended) {
+  weekTitle.textContent = "La temporada 2026 terminó";
+  deadlineLine.textContent = "";
+  statusBadge.textContent = "Cerrado";
+  statusBadge.className = "badge closed";
+} else {
+  weekTitle.textContent = `Semana ${week.n}`;
+  deadlineLine.textContent = `Cierre: ${fechaLarga(week.date)}, 11:45 AM`;
+  if (isClosed(week)) {
+    statusBadge.textContent = "Cerrado";
+    statusBadge.className = "badge closed";
+  } else {
+    statusBadge.textContent = "Abierto";
+    statusBadge.className = "badge open";
+  }
+}
+
+/* ---------- Utilidades de mensajes ---------- */
+function showMsg(el, text, kind) {
+  el.textContent = text;
+  el.className = "msg " + kind;
+}
+function hideMsg(el) { el.className = "msg"; el.textContent = ""; }
+
+/* ---------- Tabs registro / login ---------- */
+const tabRegister = $("tabRegister"), tabLogin = $("tabLogin");
+tabRegister.addEventListener("click", () => {
+  tabRegister.classList.add("active"); tabLogin.classList.remove("active");
+  $("registerForm").classList.remove("hidden"); $("loginForm").classList.add("hidden");
+  hideMsg($("authMsg"));
+});
+tabLogin.addEventListener("click", () => {
+  tabLogin.classList.add("active"); tabRegister.classList.remove("active");
+  $("loginForm").classList.remove("hidden"); $("registerForm").classList.add("hidden");
+  hideMsg($("authMsg"));
+});
+
+/* ---------- Registro ---------- */
+$("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const member = $("regMember").value;
+  const email = $("regEmail").value.trim();
+  const pass = $("regPass").value;
+  const pass2 = $("regPass2").value;
+  const btn = $("registerBtn");
+  if (!member) return showMsg($("authMsg"), "Elige tu nombre de la lista.", "err");
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) return showMsg($("authMsg"), "Escribe un correo válido.", "err");
+  if (pass.length < 6) return showMsg($("authMsg"), "La contraseña debe tener mínimo 6 caracteres.", "err");
+  if (pass !== pass2) return showMsg($("authMsg"), "Las contraseñas no coinciden.", "err");
+  btn.disabled = true; btn.textContent = "Creando tu cuenta…";
+  try {
+    const q = query(collection(db, "users"), where("member", "==", member), limit(1));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      showMsg($("authMsg"), "Ese nombre ya está registrado. Si eres tú, entra con tu correo y contraseña.", "err");
+      return;
+    }
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await setDoc(doc(db, "users", cred.user.uid), { member, createdAt: serverTimestamp() });
+    showMsg($("authMsg"), "Cuenta creada. Ya puedes mandar tu pick.", "ok");
+  } catch (err) {
+    if (err.code === "auth/email-already-in-use") showMsg($("authMsg"), "Ese correo ya tiene cuenta. Entra con tu correo y contraseña.", "err");
+    else if (err.code === "auth/invalid-email") showMsg($("authMsg"), "Escribe un correo válido.", "err");
+    else if (err.code === "auth/weak-password") showMsg($("authMsg"), "La contraseña debe tener mínimo 6 caracteres.", "err");
+    else showMsg($("authMsg"), "No se pudo crear tu cuenta. Inténtalo de nuevo.", "err");
+  } finally {
+    btn.disabled = false; btn.textContent = "Crear mi cuenta";
+  }
+});
+
+/* ---------- Login / logout ---------- */
+$("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = $("logEmail").value.trim();
+  const pass = $("logPass").value;
+  const btn = $("loginBtn");
+  if (!email || !pass) return showMsg($("authMsg"), "Escribe tu correo y tu contraseña.", "err");
+  btn.disabled = true; btn.textContent = "Entrando…";
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (err) {
+    showMsg($("authMsg"), "Correo o contraseña incorrectos.", "err");
+  } finally {
+    btn.disabled = false; btn.textContent = "Entrar";
+  }
+});
+$("logoutBtn").addEventListener("click", async () => { await signOut(auth); });
+
+/* ---------- Estado de sesión ---------- */
+let currentUser = null, currentMember = null;
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  hideMsg($("authMsg")); hideMsg($("pickMsg"));
+  if (!user) {
+    currentMember = null;
+    $("authView").classList.remove("hidden");
+    $("pickView").classList.add("hidden");
+    return;
+  }
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  if (!userDoc.exists()) {
+    showMsg($("authMsg"), "Tu cuenta no tiene nombre asignado. Avísale a Diego.", "err");
+    $("authView").classList.remove("hidden");
+    $("pickView").classList.add("hidden");
+    return;
+  }
+  currentMember = userDoc.data().member;
+  $("authView").classList.add("hidden");
+  $("pickView").classList.remove("hidden");
+  $("whoamiLine").textContent = `Hola, ${currentMember}`;
+  await refreshPickState();
+});
+
+/* ---------- Captura: validación y compresión ---------- */
+const MAX_BYTES = 10 * 1024 * 1024;
+let compressedDataUrl = null;
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 1200;
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL("image/jpeg", 0.8));
+      };
+      img.onerror = () => reject(new Error("No se pudo leer la imagen."));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
+    reader.readAsDataURL(file);
+  });
+}
+
+$("fileInput").addEventListener("change", async (e) => {
+  const file = e.target.files && e.target.files[0];
+  compressedDataUrl = null;
+  $("sendBtn").disabled = true;
+  hideMsg($("pickMsg"));
+  if (!file) return;
+  if (!file.type || !file.type.startsWith("image/")) {
+    showMsg($("pickMsg"), "El archivo debe ser una imagen.", "err");
+    e.target.value = "";
+    return;
+  }
+  if (file.size > MAX_BYTES) {
+    showMsg($("pickMsg"), "La captura debe pesar máximo 10 MB.", "err");
+    e.target.value = "";
+    return;
+  }
+  try {
+    compressedDataUrl = await compressImage(file);
+    const prev = $("preview");
+    prev.src = compressedDataUrl;
+    prev.style.display = "block";
+    if (!week.ended && !isClosed(week)) $("sendBtn").disabled = false;
+  } catch (err) {
+    showMsg($("pickMsg"), "No se pudo leer la imagen. Inténtalo con otra captura.", "err");
+  }
+});
+
+/* ---------- Estado del pick de esta semana ---------- */
+async function refreshPickState() {
+  if (week.ended || !currentMember) return;
+  const id = `${week.n}_${currentMember}`;
+  try {
+    const snap = await getDoc(doc(db, "picks", id));
+    if (snap.exists()) {
+      $("pickFormWrap").classList.add("hidden");
+      $("alreadySentWrap").classList.remove("hidden");
+      const img = snap.data().imageBase64;
+      if (img) { $("savedImg").src = img; $("savedImg").style.display = "block"; }
+      else { $("savedImg").style.display = "none"; }
+    } else {
+      $("pickFormWrap").classList.remove("hidden");
+      $("alreadySentWrap").classList.add("hidden");
+      if (isClosed(week)) {
+        showMsg($("pickMsg"), "Ya cerró el envío de picks de esta semana.", "info");
+        $("fileBtn").style.opacity = ".5";
+        $("fileBtn").style.pointerEvents = "none";
+        $("fileInput").disabled = true;
+        $("sendBtn").disabled = true;
+      }
+    }
+  } catch (err) {
+    showMsg($("pickMsg"), "No se pudo revisar tu pick. Inténtalo de nuevo.", "err");
+  }
+}
+
+/* ---------- Enviar pick ---------- */
+$("sendBtn").addEventListener("click", async () => {
+  if (!currentUser || !currentMember) return;
+  if (week.ended) return;
+  if (isClosed(week)) {
+    showMsg($("pickMsg"), "Ya cerró el envío de picks de esta semana.", "info");
+    return;
+  }
+  if (!compressedDataUrl) {
+    showMsg($("pickMsg"), "Elige primero la captura de tu pick.", "err");
+    return;
+  }
+  const btn = $("sendBtn");
+  btn.disabled = true; btn.textContent = "Mandando tu pick…";
+  try {
+    const id = `${week.n}_${currentMember}`;
+    const ref = doc(db, "picks", id);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      showMsg($("pickMsg"), "Ya mandaste tu pick.", "info");
+      await refreshPickState();
+      return;
+    }
+    await setDoc(ref, {
+      member: currentMember,
+      week: week.n,
+      weekDate: week.date,
+      imageBase64: compressedDataUrl,
+      createdAt: serverTimestamp(),
+      email: currentUser.email
+    });
+    showMsg($("pickMsg"), "¡Pick recibido!", "ok");
+    await refreshPickState();
+  } catch (err) {
+    showMsg($("pickMsg"), "No se pudo mandar tu pick. Inténtalo de nuevo.", "err");
+  } finally {
+    btn.disabled = false; btn.textContent = "Mandar mi pick";
+  }
+});
+</script>
+</body>
+</html>
