@@ -1,0 +1,22 @@
+{
+  "name": "NFL IS MONEY",
+  "short_name": "NFL IS MONEY",
+  "description": "Picks, quiniela y tabla del grupo NFL IS MONEY.",
+  "start_url": "/nfl-is-money/",
+  "scope": "/nfl-is-money/",
+  "display": "standalone",
+  "background_color": "#f4f4f4",
+  "theme_color": "#013369",
+  "icons": [
+    {
+      "src": "/nfl-is-money/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/nfl-is-money/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
