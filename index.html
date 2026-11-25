@@ -948,6 +948,34 @@ body.gp-sheet #viewPartidos{animation:none;transform:none}
 .preview-head .pv-body.folded{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .pv-more{margin-top:10px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--on-dark-muted);background:transparent;color:var(--white);font-family:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer}
 @media(prefers-reduced-motion:reduce){.card-head .verdict,#gamePanel:not([hidden]){animation:none}}
+/* ===== Fase 4 · dinamismo e interactividad (sin cambiar datos ni lógica) ===== */
+/* Cara a cara: chips de jugador (los select quedan como fuente de verdad, ocultos a la vista) */
+.h2h-chips{display:grid;gap:10px;margin-bottom:14px}
+.h2h-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;align-items:center}
+.h2h-row::-webkit-scrollbar{display:none}
+.h2h-row .h2h-lbl{flex:0 0 auto;font-family:"JetBrains Mono",monospace;font-size:var(--fs-xs);font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;min-width:22px}
+.h2h-row button{flex:0 0 auto;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;cursor:pointer}
+.h2h-row.a button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:var(--white)}
+.h2h-row.b button[aria-pressed="true"]{background:var(--pylon-action);border-color:var(--pylon-action);color:var(--white)}
+.h2h-row button:disabled{opacity:.35;cursor:default}
+.h2h-pick.has-chips{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#h2hBody{transition:opacity var(--dur-2) var(--ease)}
+#h2hBody.f4-swap{opacity:.25}
+/* En vivo: pulso en partidos en juego y primero los que van cobrando */
+.lv-gstatus.live::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff3b3b;margin-right:6px;vertical-align:1px;animation:f4pulse 1.6s infinite}
+#viewVivo:has(.lv-gstatus.live) .lv-tag::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff3b3b;margin-right:7px;vertical-align:0;animation:f4pulse 1.6s infinite}
+.lv-card:has(.lv-bar.done):not(:has(.lv-bar.miss)){order:-1;box-shadow:0 0 0 2px var(--green)}
+.lv-bar i{transition:width .8s var(--ease)}
+@keyframes f4pulse{0%{box-shadow:0 0 0 0 rgba(255,59,59,.55)}70%{box-shadow:0 0 0 8px rgba(255,59,59,0)}100%{box-shadow:0 0 0 0 rgba(255,59,59,0)}}
+/* Esqueletos de carga (Picks recibidos y En vivo) */
+.f4-skel{display:grid;gap:10px;margin-top:12px}
+.f4-skel i{display:block;height:74px;border-radius:var(--r-md);background:linear-gradient(90deg,var(--surface2) 0%,var(--line) 50%,var(--surface2) 100%);background-size:200% 100%;animation:f4shim 1.2s linear infinite}
+.f4-skel[hidden]{display:none}
+@keyframes f4shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* Marcador: rebote corto al cambiar de semana */
+.bug b.f4-pop{animation:f4pop var(--dur-3) var(--ease)}
+@keyframes f4pop{0%{transform:scale(.86);opacity:.4}100%{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.lv-gstatus.live::before,#viewVivo .lv-tag::before,.f4-skel i,.bug b.f4-pop{animation:none}#h2hBody,.lv-bar i{transition:none}}
 </style>
 </head>
 <body data-view="semana">
@@ -1712,6 +1740,44 @@ body.gp-sheet #viewPartidos{animation:none;transform:none}
       p.parentNode.insertBefore(b,p.nextSibling);
     });
   });
+}();
+</script>
+<script>
+/* Fase 4 · dinamismo. Solo presentación:
+   - cara a cara con chips que cambian los mismos <select> y disparan su evento "change";
+   - esqueletos mientras cargan Picks recibidos y En vivo (se leen los estados que ya muestran sus scripts);
+   - rebote del marcador cuando selectWeek() cambia los números. */
+!function(){
+  var $=function(id){return document.getElementById(id)};
+  /* Cara a cara */
+  var A=$('h2hA'), B=$('h2hB'), body=$('h2hBody'), pick=A&&A.closest('.h2h-pick');
+  if(A&&B&&pick){
+    var opts=[].map.call(A.options,function(o){return [o.value,o.textContent]});
+    var wrap=document.createElement('div'); wrap.className='h2h-chips';
+    var mk=function(sel,cls,lbl){var row=document.createElement('div'); row.className='h2h-row '+cls; row.setAttribute('role','group'); row.setAttribute('aria-label',sel.getAttribute('aria-label'));
+      row.innerHTML='<span class="h2h-lbl">'+lbl+'</span>'+opts.map(function(o){return '<button type="button" data-v="'+o[0]+'">'+o[1]+'</button>'}).join('');
+      row.addEventListener('click',function(e){var b=e.target.closest('button[data-v]'); if(!b||b.disabled) return; sel.value=b.getAttribute('data-v');
+        body&&body.classList.add('f4-swap'); sel.dispatchEvent(new Event('change',{bubbles:true})); setTimeout(function(){body&&body.classList.remove('f4-swap')},120); paint()});
+      return row};
+    var ra=mk(A,'a','vs'), rb=mk(B,'b','');
+    ra.querySelector('.h2h-lbl').textContent='1'; rb.querySelector('.h2h-lbl').textContent='2';
+    wrap.appendChild(ra); wrap.appendChild(rb); pick.parentNode.insertBefore(wrap,pick); pick.classList.add('has-chips');
+    var paint=function(){[[ra,A,B],[rb,B,A]].forEach(function(x){[].forEach.call(x[0].querySelectorAll('button[data-v]'),function(b){var v=b.getAttribute('data-v');b.setAttribute('aria-pressed',v===x[1].value?'true':'false');b.disabled=(v===x[2].value)})})};
+    A.addEventListener('change',paint); B.addEventListener('change',paint); paint();
+  }
+  /* Esqueletos */
+  var skel=function(gridId,others){
+    var g=$(gridId); if(!g) return;
+    var s=document.createElement('div'); s.className='f4-skel'; s.setAttribute('aria-hidden','true'); s.innerHTML='<i></i><i></i>'; g.parentNode.insertBefore(s,g);
+    var upd=function(){var busy=!g.children.length&&others.every(function(id){var e=$(id);return !e||e.hidden}); s.hidden=!busy};
+    if(window.MutationObserver){var mo=new MutationObserver(upd); mo.observe(g,{childList:true}); others.forEach(function(id){var e=$(id); e&&mo.observe(e,{attributes:true,attributeFilter:['hidden']})})}
+    upd(); setTimeout(function(){s.hidden=true},20000);
+  };
+  skel('prcGrid',['prcEmpty','prcError','prcLogin']);
+  skel('liveGrid',['liveEmpty','liveError','liveLogin']);
+  /* Rebote del marcador */
+  ['bugHits','bugMiss'].forEach(function(id){var b=$(id); if(!b||!window.MutationObserver) return;
+    new MutationObserver(function(){b.classList.remove('f4-pop'); void b.offsetWidth; b.classList.add('f4-pop')}).observe(b,{childList:true,characterData:true,subtree:true})});
 }();
 </script>
 </body>
