@@ -1221,6 +1221,24 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
 .wrap:has(.preview-wrap:not([hidden])) .hero-main{grid-template-columns:1fr;padding-top:12px;padding-bottom:14px}
 .wrap:has(.preview-wrap:not([hidden])) .hero .scorebug{margin-top:0}
 .wrap:has(.preview-wrap:not([hidden])) .hero{padding-top:0;padding-bottom:0}
+/* ===== Botón "Agregar a mi pantalla" + limpieza de Quiniela, Picks y tracker ===== */
+.install-cta{margin:12px 0 4px;display:grid;gap:6px}
+.install-cta[hidden]{display:none}
+body:not([data-view="semana"]) .install-cta{display:none}
+.install-btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:12px 18px;border:0;border-radius:14px;background:var(--pylon-action);color:var(--white);font-family:"Barlow Condensed",sans-serif;font-size:20px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;box-shadow:0 6px 18px var(--pylon-shadow);cursor:pointer}
+.install-btn:active{transform:scale(.97)}
+.install-hint{margin:0;font-size:13px;color:var(--muted);text-align:center}
+.install-hint:empty{display:none}
+/* Quiniela: sin bienvenida (la info ya está en el cuadro azul), un solo "Entrar", sin notas al pie de tablas */
+#viewQuiniela .q-welcome{display:none}
+#qAuthView .q-tabs{display:none}
+#qTablePane .q-small,#qAllPane .q-small,#viewQuiniela .res-card .q-small{display:none}
+/* Picks: sin el cuadro del calendario (los mismos partidos están en "El pick de cada partido") */
+#viewPartidos .partidos-box{display:none}
+#viewPartidos .news-box{margin-top:8px}
+/* En vivo › Partidos: sin encabezado ni filtros; lo primero es el primer partido */
+#nflLive .nl-head,#nflLive .nl-filters{display:none}
+/* Tabla general en celular: la caja se desliza de lado, así que el encabezado no debe ser pegajoso (tapaba al 1.er lugar) */@media(max-width:640px){#viewTabla .table-wrap thead th{position:static;top:auto}}
 </style>
 </head>
 <body data-view="semana">
@@ -1262,6 +1280,8 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   <button type="button" class="navbtn" data-view-tab="h2h" aria-pressed="false"><span class="nb-title">Cara a cara</span><span class="nb-sub">Compara a dos jugadores</span></button>
   <button type="button" class="navbtn" data-view-tab="quiniela" aria-pressed="false"><span class="nb-title">¿Si le sabes?</span><span class="nb-sub">Quiniela Semana 12 · 16 partidos</span></button>
 </nav>
+<!-- Botón para agregar la página a la pantalla de inicio (solo si aún no está instalada) -->
+<div class="install-cta" id="installCta" hidden><button type="button" class="install-btn" id="installBtn"><span aria-hidden="true">📲</span> Agregar NFL IS MONEY a mi pantalla</button><p class="install-hint" id="installHint"></p></div>
 <header class="hero">
   <div class="hero-main">
     <div>
@@ -1371,7 +1391,6 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
     <div class="pv-kicker">NFL · Temporada 2026 · Semana de Thanksgiving · El juego de la semana: Kansas City en Buffalo, jueves por la noche</div>
     <h2>Semana 12: Mahomes contra Allen y cinco días seguidos de fútbol</h2>
     <p>Semana de Thanksgiving y la NFL nos regala cinco días seguidos de fútbol: se abre el miércoles con Packers-Rams por Netflix y el jueves hay triplete, con el Mahomes contra Allen para cerrar la noche. El domingo, el grupo se juega sus picks en ocho partidos: Jacksonville sale a cobrarse la revancha con Tennessee por -14.5, Cincinnati recibe a unos Saints rotos y el juego de la semana es Seattle en San Francisco. Después de un 1 de 8 y un parley que ya es 0 de 11, la pregunta no es quién acierta, sino quién se atreve a mandar pick. La quiniela se abre con 16 partidos y sin descansos: nadie se escapa.</p>
-    <p class="pv-close">La quiniela de la Semana 12 trae los 16 partidos de la semana, del miércoles 25 al lunes 30 de noviembre, sin descansos para nadie. Cierre por definir.</p>
     <button type="button" class="share-page-btn" id="sharePageBtnTop">Compartir</button>
   </div>
   <div class="picks-received" id="prcPanel">
@@ -1554,7 +1573,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
 
 <div id="viewTabla" hidden>
 <h2 class="section" id="ranking">Tabla general tras 11 semanas</h2>
-<div class="table-wrap"><table class="rank"><thead><tr><th>#</th><th>Integrante</th><th>Récord</th><th>Nulos</th><th>Efectividad</th><th>Forma</th><th>Mov. vs S9</th></tr></thead><tbody id="rankBody"></tbody></table></div>
+<div class="table-wrap"><table class="rank"><thead><tr><th>#</th><th>Integrante</th><th>Récord</th><th>Nulos</th><th>Efectividad</th><th>Forma</th><th title="Cambio de lugar contra la semana anterior">Mov.</th></tr></thead><tbody id="rankBody"></tbody></table></div>
 <div class="race-wrap" id="raceWrap">
   <h3>Carrera por el liderato</h3>
   <div class="race-legend" id="raceLegend"></div>
@@ -1705,7 +1724,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
 <h2 class="section">¿Si le sabes? — Quiniela Semana 12</h2>
 <div class="q-intro">
   <p class="q-weekline">16 partidos · 25 al 30 de noviembre de 2026</p>
-  <p class="q-deadline">Elige al ganador de cada partido: 1 punto por acierto. No hay un cierre único: cada partido cierra a su kickoff, y puedes elegir o cambiar tu pick hasta que empiece ese partido. Los picks de los demás se revelan al kickoff de cada partido.</p>
+  <p class="q-deadline">Elige al ganador de cada partido: 1 punto por acierto. No hay un cierre único: cada partido cierra a su kickoff, y puedes elegir o cambiar tu pick hasta que empiece ese partido. Los picks de los demás se revelan al kickoff de cada partido. Los partidos marcados como HÁNDICAP se ganan si tu equipo cubre la línea.</p>
   <span class="q-badge" id="qStatusBadge">Abierta · cada partido cierra a su kickoff</span>
 </div>
 
@@ -1996,16 +2015,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
     if(window.MutationObserver){var mo=new MutationObserver(upd);mo.observe(cnt,{childList:true,characterData:true,subtree:true});miss&&mo.observe(miss,{childList:true,characterData:true,subtree:true})}
     upd();
   }
-  /* Crónicas plegables */
-  [].forEach.call(document.querySelectorAll('.preview-head'),function(h){
-    var ps=[].filter.call(h.querySelectorAll(':scope > p'),function(p){return !p.classList.contains('pv-close')&&p.textContent.length>280});
-    ps.forEach(function(p){
-      p.classList.add('pv-body','folded');
-      var b=document.createElement('button'); b.type='button'; b.className='pv-more'; b.textContent='Leer completa'; b.setAttribute('aria-expanded','false');
-      b.addEventListener('click',function(){var f=p.classList.toggle('folded');b.textContent=f?'Leer completa':'Mostrar menos';b.setAttribute('aria-expanded',f?'false':'true')});
-      p.parentNode.insertBefore(b,p.nextSibling);
-    });
-  });
+  /* (Las crónicas se muestran completas; se quitó "Leer completa / Mostrar menos".) */
 }();
 </script>
 <script>
@@ -2332,7 +2342,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
     var sel=games.filter(function(g){return filter==='todos'||(filter==='vivo'&&g.state==='in')||(filter==='prox'&&g.state==='pre')||(filter==='fin'&&g.state==='post')||(filter==='parley'&&g.parley)});
     if(!sel.length){list.innerHTML='<div class="nl-msg">'+(filter==='vivo'?'No hay partidos en juego en este momento.':'No hay partidos en este filtro.')+'</div>';return}
     var html='', live=filter==='todos'?sel.filter(function(g){return g.state==='in'}):[], rest=filter==='todos'?sel.filter(function(g){return g.state!=='in'}):sel;
-    if(live.length) html+='<p class="nl-day live">En vivo ahora</p><div class="nl-group">'+live.map(card).join('')+'</div>';
+    if(live.length) html+='<div class="nl-group">'+live.map(card).join('')+'</div>';
     var day='', grp=[];
     var flush=function(){if(grp.length){html+='<p class="nl-day">'+esc(day)+'</p><div class="nl-group">'+grp.join('')+'</div>';grp=[]}};
     rest.forEach(function(g){var d=fmtDay(g.date); if(d!==day){flush();day=d} grp.push(card(g))}); flush();
@@ -2369,6 +2379,34 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   document.addEventListener('nfl:refresh',function(){ load(true) });
   document.addEventListener('visibilitychange',function(){ if(visible()) load(false) });
   setInterval(stamp,30000);
+}();
+</script>
+<script>
+/* Agregar a la pantalla de inicio. iPhone/iPad: Safari no permite abrir "Agregar a inicio" desde la
+   página; el botón abre el menú Compartir y explica dónde tocar. Android/Chrome: instalador real
+   (beforeinstallprompt). Se oculta si la página ya corre instalada. */
+!function(){
+  var cta=document.getElementById('installCta'), btn=document.getElementById('installBtn'), hint=document.getElementById('installHint');
+  if(!cta||!btn) return;
+  var standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  if(standalone) return;
+  var ua=navigator.userAgent||'', ios=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var deferred=null;
+  var toast=function(m,ms){ if(window.__f7toast) window.__f7toast(m,ms); };
+  function show(){ cta.hidden=!(ios||deferred); if(ios&&hint) hint.textContent='Se abre el menú de Compartir: desliza y toca «Agregar a inicio».'; }
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; show(); });
+  window.addEventListener('appinstalled',function(){ cta.hidden=true; deferred=null; toast('Listo: ya está en tu pantalla de inicio'); });
+  btn.addEventListener('click',function(){
+    try{navigator.vibrate&&navigator.vibrate(10)}catch(x){}
+    if(deferred){ deferred.prompt(); deferred.userChoice.then(function(c){ if(c&&c.outcome==='accepted') cta.hidden=true; deferred=null; show(); }); return; }
+    if(ios){
+      var url=location.origin+location.pathname;
+      toast('En el menú que se abre, desliza y toca «Agregar a inicio» 📲',6000);
+      if(navigator.share){ navigator.share({title:'NFL IS MONEY',url:url}).catch(function(){}); }
+      else { toast('Toca el botón Compartir de Safari (el cuadro con la flecha ↑) y luego «Agregar a inicio».',7000); }
+    }
+  });
+  show();
 }();
 </script>
 </body>
