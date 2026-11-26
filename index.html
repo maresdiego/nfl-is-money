@@ -1240,6 +1240,29 @@ body:not([data-view="semana"]) .install-cta{display:none}
 #nflLive .nl-head,#nflLive .nl-filters{display:none}
 /* Tabla general en celular: la caja se desliza de lado, así que el encabezado no debe ser pegajoso (tapaba al 1.er lugar) */@media(max-width:640px){#viewTabla .table-wrap thead th{position:static;top:auto}}
 /* En vivo: partidos sobre pasto de campo NFL, acentos amarillo poste */:root{--turf:#1f5130;--turf2:#24603a;--turf-line:rgba(255,255,255,.10);--post:#f2c230}.nl-game{background:repeating-linear-gradient(90deg,var(--turf) 0 34px,var(--turf2) 34px 68px);border-color:rgba(255,255,255,.12)}.nl-game.in{border-color:var(--post);box-shadow:0 0 0 1px rgba(242,194,48,.35),var(--elev-1)}.nl-game.parley{border-left-color:var(--post)}.nl-status,.nl-acc-h b,.nl-game.post .nl-team.win .sc::after{color:var(--post)}.nl-tab[aria-pressed="true"],.nl-parley{background:var(--post);border-color:var(--post);color:#1b1b1b}.nl-tm[aria-pressed="true"]{border-color:var(--post);background:rgba(242,194,48,.16)}.nl-box,.nl-box th,.nl-box th:first-child,.nl-box td:first-child{background:#173f26}
+/* ===== Botones internos con relieve (subpestañas, filtros, chips, pestañas) ===== */
+:root{--btn-face:linear-gradient(180deg,#ffffff 0%,#eef2f7 100%);--btn-edge:#d3dbe4;--btn-sh:0 1px 0 #fff inset,0 2px 6px rgba(1,35,82,.09);
+  --btn-on:linear-gradient(180deg,#0d4a8c 0%,#012c5c 100%);--btn-on-sh:0 1px 0 rgba(255,255,255,.2) inset,0 5px 14px rgba(1,35,82,.3)}
+/* Subpestañas como control segmentado */
+.sub-nav{background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px;box-shadow:inset 0 1px 3px rgba(1,35,82,.08)}
+.sub-nav button{flex:1 0 auto;border:0;background:transparent;box-shadow:none;color:var(--muted);font-weight:800;letter-spacing:.02em;transition:background var(--dur-2) var(--ease),color var(--dur-2) var(--ease),box-shadow var(--dur-2) var(--ease)}
+.sub-nav button[aria-pressed="true"]{background:var(--btn-on);color:var(--white);box-shadow:var(--btn-on-sh)}
+/* Filtros, chips y pestañas */
+.controls button,.q-tabs button,.h2h-row button,.f7-me,.player-picker button{background:var(--btn-face);border:1px solid var(--btn-edge);box-shadow:var(--btn-sh);color:var(--ink);font-weight:800;letter-spacing:.02em;transition:transform var(--dur-1) var(--ease),box-shadow var(--dur-2) var(--ease),background var(--dur-2) var(--ease)}
+.controls button[aria-pressed="true"],.q-tabs button.active,.h2h-row.a button[aria-pressed="true"],.player-picker button[aria-pressed="true"]{background:var(--btn-on);border-color:#012c5c;color:var(--white);box-shadow:var(--btn-on-sh)}
+.h2h-row.b button[aria-pressed="true"]{background:linear-gradient(180deg,#ff7a2b 0%,#e05200 100%);border-color:#c84600;color:var(--white);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 5px 14px var(--pylon-shadow)}
+.f7-me{color:var(--pylon-action)!important;border-color:#f3b58c!important}
+.f7-me[aria-pressed="true"]{background:linear-gradient(180deg,#ff7a2b 0%,#e05200 100%)!important;color:var(--white)!important}
+/* Compartir y Actualizar como píldoras con ícono */
+.share-pick-btn,.share-page-btn,.prc-refresh,.prc-login-btn{display:inline-flex;align-items:center;gap:6px;border-radius:999px!important;background:var(--btn-face)!important;border:1px solid var(--btn-edge)!important;color:var(--navy)!important;box-shadow:var(--btn-sh)!important;font-weight:800}
+.share-pick-btn::before,.share-page-btn::before{content:"📤";font-size:14px}
+.prc-refresh::before{content:"🔄";font-size:13px}
+.prc-login-btn{background:var(--btn-on)!important;border-color:#012c5c!important;color:var(--white)!important;box-shadow:var(--btn-on-sh)!important}
+/* Botones dentro de cuadros oscuros (crónica) */
+.preview-head .share-page-btn{background:rgba(255,255,255,.12)!important;border-color:rgba(255,255,255,.28)!important;color:var(--white)!important;box-shadow:none!important}
+/* Botón central En vivo: sin rectángulo oscuro al estar activo en celular */
+@media(max-width:820px){.dest-bar .dest-live,.dest-bar .dest-live[aria-current="page"]{background:transparent!important;box-shadow:none!important}}
+@media(prefers-reduced-motion:reduce){.sub-nav button,.controls button,.q-tabs button,.h2h-row button{transition:none}}
 </style>
 </head>
 <body data-view="semana">
