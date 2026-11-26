@@ -2802,6 +2802,14 @@ body:not([data-view="semana"]) .install-cta{display:none}
       return l }).filter(Boolean);
     var bi=-1; L.forEach(function(l,i){ if(bi<0&&/^boleto\b/i.test(l)) bi=i }); if(bi>-1) L=L.slice(bi+1);
     L=L.filter(function(l){ return !/apuesta total|ganancia total|ganar\s*:|limpiar todo|realizar apuesta|inicia sesi|^momios?\b/i.test(l) });
+    /* Renglones partidos por lo angosto del boleto: "…Más De" + "49,5", "DAL Cowboys" + "(-4,5)", "Jameson" + "Williams (DET) Más De…" */
+    for(var q=0;q<L.length-1;q++){
+      var A=L[q], B=L[q+1], join=false;
+      if(/(M[aá]s|Mas|Menos)\s*D[eo]$/i.test(A)&&/^\d+(?:[.,]\d+)?\b/.test(B)) join=true;
+      else if(/^\(\s*[+-]\s?\d/.test(B)&&teamIn(A)&&!/\(/.test(A)) join=true;
+      else if(/^[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ'.\-]+$/.test(A)&&/^[A-ZÁÉÍÓÚÑ][^()]*\(\s*[A-Z]{2,3}\s*\)/.test(B)&&!teamIn(A)) join=true;
+      if(join){ L[q]=A+' '+B; L.splice(q+1,1); q-- }
+    }
     var H=[], legs=[], bad=[], used={};
     var SEL_PROP=/^(.+?)\s*\(\s*([A-Z]{2,3})\s*\)\s*(M[aá]s|Mas|Menos)\s*D[eo]\s*([\d]+[.,]\d|\d+)/i;
     var SEL_TD=/^(.+?)\s*\(\s*([A-Z]{2,3})\s*\)\s*$/;
@@ -2863,6 +2871,8 @@ body:not([data-view="semana"]) .install-cta{display:none}
       var k=key(m[1]), best=null, bd=1e9; names.forEach(function(n){ var d=lev(k,key(n)); if(d<bd){bd=d;best=n} });
       var nt=best+' ('+m[2]+') '+m[3]; if(SLIPG[t]) SLIPG[nt]=SLIPG[t];
       if(bd===0||best&&bd<=Math.max(2,Math.round(k.length*.15))) return nt;
+      var last=k.split(' ').pop(), same=names.filter(function(n){ var kk=key(n).split(' '); return kk[kk.length-1]===last });
+      if(last.length>=4&&same.length===1){ nt=same[0]+' ('+m[2]+') '+m[3]; if(SLIPG[t]) SLIPG[nt]=SLIPG[t]; return nt }
       var out=t; NOPL[out]='No encuentro a «'+m[1]+'» en el roster de '+m[2]; return out }) })) }
   var tessP=null, workerP=null;
   function tesseract(){ return tessP||(tessP=new Promise(function(res,rej){ if(window.Tesseract) return res(window.Tesseract);
