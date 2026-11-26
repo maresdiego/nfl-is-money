@@ -1239,6 +1239,7 @@ body:not([data-view="semana"]) .install-cta{display:none}
 /* En vivo › Partidos: sin encabezado ni filtros; lo primero es el primer partido */
 #nflLive .nl-head,#nflLive .nl-filters{display:none}
 /* Tabla general en celular: la caja se desliza de lado, así que el encabezado no debe ser pegajoso (tapaba al 1.er lugar) */@media(max-width:640px){#viewTabla .table-wrap thead th{position:static;top:auto}}
+/* En vivo: partidos sobre pasto de campo NFL, acentos amarillo poste */:root{--turf:#1f5130;--turf2:#24603a;--turf-line:rgba(255,255,255,.10);--post:#f2c230}.nl-game{background:repeating-linear-gradient(90deg,var(--turf) 0 34px,var(--turf2) 34px 68px);border-color:rgba(255,255,255,.12)}.nl-game.in{border-color:var(--post);box-shadow:0 0 0 1px rgba(242,194,48,.35),var(--elev-1)}.nl-game.parley{border-left-color:var(--post)}.nl-status,.nl-acc-h b,.nl-game.post .nl-team.win .sc::after{color:var(--post)}.nl-tab[aria-pressed="true"],.nl-parley{background:var(--post);border-color:var(--post);color:#1b1b1b}.nl-tm[aria-pressed="true"]{border-color:var(--post);background:rgba(242,194,48,.16)}.nl-box,.nl-box th,.nl-box th:first-child,.nl-box td:first-child{background:#173f26}
 </style>
 </head>
 <body data-view="semana">
@@ -1919,7 +1920,7 @@ body:not([data-view="semana"]) .install-cta{display:none}
   window.__homeWeek=homeWeek;
   var SUBS={
     jornada:function(){var h=homeWeek(), n=DW(); return h!==n?[['semana','Semana',goHome],['preview','Preview S'+n,function(){goWeek(n)}]]:[['semana','Semana',goHome]]},
-    vivo:[['vivo','Parley',function(){var vv=$('viewVivo');vv&&vv.classList.remove('show-nfl');tab('vivo').click();sync()}],
+    vivo:[['vivo','Parley grupal',function(){var vv=$('viewVivo');vv&&vv.classList.remove('show-nfl');tab('vivo').click();sync()}],
           ['vivo-nfl','Partidos',function(){var vv=$('viewVivo');tab('vivo').click();vv&&vv.classList.add('show-nfl');sync();document.dispatchEvent(new Event('nfl:show'))}]],
     grupo:[['tabla','Tabla',function(){tab('tabla').click()}],['historial','Historial',function(){$('bigHistBtn').click()}],
            ['h2h','Cara a cara',function(){tab('h2h').click()}],['castigos','Castigos',function(){$('bigCastBtn').click()}]]
@@ -2245,7 +2246,7 @@ body:not([data-view="semana"]) .install-cta{display:none}
   var games=[], lastOk=0, loading=false, timer=null, filter='todos', open={}, prev={}, firstLoad=true, box={}, acc={}, boxBusy={}, teamSel={};
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
   /* Estadísticas completas por jugador (resumen del partido de ESPN) */
-  var CATS=[['passing','Passing'],['rushing','Rushing'],['receiving','Receiving']];
+  var CATS=[['passing','🎯 Passing'],['rushing','🏃 Rushing'],['receiving','🙌 Receiving']];
   var LBL={'C/ATT':'COMP','AVG':'PROM','SACKS':'CAPT','CAR':'ACAR','LONG':'LARGA','TGTS':'OBJ'};
   function fetchBox(id){
     if(boxBusy[id]) return; boxBusy[id]=true;
