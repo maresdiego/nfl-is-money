@@ -1166,6 +1166,14 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
 .nl-box tr.tot td{font-weight:800;color:var(--white);border-bottom:0;background:rgba(255,106,19,.10)}
 .nl-box tr.tot td:first-child{background:#1a2333}
 @media(prefers-reduced-motion:reduce){.nl-acc-b{animation:none}.nl-acc-h i{transition:none}}
+/* ===== Tracker · Pase / Carrera / Recepción en una fila horizontal ===== */
+.nl-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.nl-tab{min-height:44px;border-radius:999px;border:1.5px solid var(--night-line);background:transparent;color:var(--on-dark-text);font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background var(--dur-1) var(--ease),border-color var(--dur-1) var(--ease)}
+.nl-tab[aria-pressed="true"]{background:var(--pylon-action);border-color:var(--pylon-action);color:var(--white)}
+.nl-tab:active{transform:scale(.95)}
+.nl-tabp{display:grid;gap:10px;animation:mpFadeUp .25s ease both}
+.nl-tabp[hidden]{display:none}
+@media(prefers-reduced-motion:reduce){.nl-tabp{animation:none}.nl-tab{transition:none}}
 </style>
 </head>
 <body data-view="semana">
@@ -2168,7 +2176,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   var games=[], lastOk=0, loading=false, timer=null, filter='todos', open={}, prev={}, firstLoad=true, box={}, acc={}, boxBusy={};
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
   /* Estadísticas completas por jugador (resumen del partido de ESPN) */
-  var CATS=[['passing','Pase'],['rushing','Carrera'],['receiving','Recepción']];
+  var CATS=[['passing','Passing'],['rushing','Rushing'],['receiving','Receiving']];
   var LBL={'C/ATT':'COMP','AVG':'PROM','SACKS':'CAPT','CAR':'ACAR','LONG':'LARGA','TGTS':'OBJ'};
   function fetchBox(id){
     if(boxBusy[id]) return; boxBusy[id]=true;
@@ -2191,7 +2199,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
       var tot=t.totals.length?'<tr class="tot"><td>Total</td>'+t.totals.map(function(s){return '<td>'+esc(s)+'</td>'}).join('')+'</tr>':'';
       return '<div class="nl-box"><table>'+th+rows+tot+'</table></div>'}).join('');
   }
-  function paintAcc(id){ CATS.forEach(function(c){ var k=id+'|'+c[0], el=list.querySelector('[data-acc-b="'+k+'"]'); if(el&&acc[k]) el.innerHTML=boxHtml(id,c[0]) }) }
+  function paintAcc(id){ var el=list.querySelector('[data-tabp="'+id+'"]'); if(el&&acc[id]) el.innerHTML=boxHtml(id,acc[id]) }
   function needBox(id,live){ var b=box[id]; return !b||b.err&&!boxBusy[id]||(live&&Date.now()-b.t>30000) }
   var ALIAS={WAS:'WSH',LA:'LAR',ARZ:'ARI'};
   var norm=function(a){return ALIAS[a]||a};
@@ -2244,11 +2252,11 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
       var row=function(t){var r='<tr><td>'+esc(t.ab)+'</td>';for(var i=0;i<n;i++)r+='<td>'+esc(t.ls[i]!=null?t.ls[i]:'–')+'</td>';return r+'<td>'+esc(t.score)+'</td></tr>'};
       more+='<table class="nl-ls">'+th+row(g.away)+row(g.home)+'</table>'}
     if(g.state!=='pre'){
-      more+='<div class="nl-acc">'+CATS.map(function(c){
-        var k=g.id+'|'+c[0], on=!!acc[k], ld=g.leaders.filter(function(l){return l.key===c[0]})[0];
-        return '<div class="nl-acc-i'+(on?' on':'')+'"><button type="button" class="nl-acc-h" data-acc="'+esc(k)+'" aria-expanded="'+on+'"><b>'+c[1]+'</b><span>'+(ld?esc(ld.who)+' · '+esc(ld.val):'Ver jugadores')+'</span><i aria-hidden="true">▾</i></button>'+
-               '<div class="nl-acc-b" data-acc-b="'+esc(k)+'"'+(on?'':' hidden')+'>'+(on?boxHtml(g.id,c[0]):'')+'</div></div>'}).join('')+'</div>';
-      if(CATS.some(function(c){return acc[g.id+'|'+c[0]]})&&needBox(g.id,g.state==='in')) fetchBox(g.id);
+      var selc=acc[g.id];
+      more+='<div class="nl-tabs" role="group" aria-label="Estadísticas por jugador">'+CATS.map(function(c){
+        return '<button type="button" class="nl-tab" data-tab="'+esc(g.id+'|'+c[0])+'" aria-pressed="'+(selc===c[0])+'">'+c[1]+'</button>'}).join('')+'</div>'+
+        '<div class="nl-tabp" data-tabp="'+esc(g.id)+'"'+(selc?'':' hidden')+'>'+(selc?boxHtml(g.id,selc):'')+'</div>';
+      if(selc&&needBox(g.id,g.state==='in')) fetchBox(g.id);
     }
     if(g.venue&&g.state!=='pre') more+='<div class="nl-venue">'+esc(g.venue)+'</div>';
     if(more) h+='<div class="nl-more"'+(open[g.id]?'':' hidden')+'>'+more+'</div>';
@@ -2282,10 +2290,11 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   filt.addEventListener('click',function(e){var b=e.target.closest('[data-f]'); if(!b) return; filter=b.getAttribute('data-f'); draw(); try{navigator.vibrate&&navigator.vibrate(8)}catch(x){}});
   list.addEventListener('click',function(e){ if(e.target.closest('[data-nl-retry]')){load(true);return}
     var rb=e.target.closest('[data-box-retry]'); if(rb){var rid=rb.getAttribute('data-box-retry'); delete box[rid]; paintAcc(rid); fetchBox(rid); return}
-    var h=e.target.closest('.nl-acc-h');
-    if(h){ var k=h.getAttribute('data-acc'), gid=k.split('|')[0], cat=k.split('|')[1]; acc[k]=!acc[k]; h.setAttribute('aria-expanded',acc[k]?'true':'false'); h.parentNode.classList.toggle('on',!!acc[k]);
-      var body=list.querySelector('[data-acc-b="'+k+'"]'); if(body){body.hidden=!acc[k]; if(acc[k]) body.innerHTML=boxHtml(gid,cat)}
-      if(acc[k]){var gg=games.filter(function(x){return x.id===gid})[0]; if(needBox(gid,gg&&gg.state==='in')) fetchBox(gid)}
+    var h=e.target.closest('.nl-tab');
+    if(h){ var k=h.getAttribute('data-tab'), gid=k.split('|')[0], cat=k.split('|')[1]; acc[gid]=(acc[gid]===cat)?undefined:cat;
+      [].forEach.call(h.parentNode.querySelectorAll('.nl-tab'),function(b){b.setAttribute('aria-pressed',b.getAttribute('data-tab')===gid+'|'+acc[gid]?'true':'false')});
+      var body=list.querySelector('[data-tabp="'+gid+'"]'); if(body){body.hidden=!acc[gid]; body.innerHTML=acc[gid]?boxHtml(gid,acc[gid]):''}
+      if(acc[gid]){var gg=games.filter(function(x){return x.id===gid})[0]; if(needBox(gid,gg&&gg.state==='in')) fetchBox(gid)}
       try{navigator.vibrate&&navigator.vibrate(8)}catch(x){} return }
     if(e.target.closest('.nl-more')) return;
     var a=e.target.closest('.nl-game'); if(!a) return; var id=a.getAttribute('data-id'); open[id]=!open[id]; a.setAttribute('aria-expanded',open[id]?'true':'false'); var m=a.querySelector('.nl-more'); m&&(m.hidden=!open[id]) });
