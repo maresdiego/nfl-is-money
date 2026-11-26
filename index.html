@@ -2894,7 +2894,7 @@ body:not([data-view="semana"]) .install-cta{display:none}
         st.className='mp-ocr'+(bad||miss.length?' warn':' ok');
         st.textContent=(bad||miss.length?'⚠️ ':'✅ ')+'Leí '+ok.length+(ok.length===1?' pierna':' piernas')+' de tu boleto.'+(miss.length?' '+miss.length+' renglón(es) no se pudieron leer: agrégalos a mano.':'')+(bad?' Revisa las marcadas.':' Revisa que estén bien y toca «Guardar parley».');
         if(miss.length||bad) man.open=true;
-        else if(window.__lvParse) setTimeout(function(){ if(!form.hidden&&legs.length&&!legs.some(function(t){return check(t)})){ st.textContent='✅ Leí '+legs.length+(legs.length===1?' pierna':' piernas')+' y todo cuadra. Guardando…'; form.requestSubmit?form.requestSubmit():197121'mpSave').click() } },2600);
+        else if(window.__lvParse) setTimeout(function(){ if(!form.hidden&&legs.length&&!legs.some(function(t){return check(t)})){ st.textContent='✅ Leí '+legs.length+(legs.length===1?' pierna':' piernas')+' y todo cuadra. Guardando…'; form.requestSubmit?form.requestSubmit():$('mpSave').click() } },2600);
         });
       },function(){ st.className='mp-ocr warn'; st.textContent='⚠️ No se pudo cargar el lector automático (revisa tu internet). Agrega las piernas a mano abajo.'; man.open=true });
     }; fr.readAsDataURL(f);
