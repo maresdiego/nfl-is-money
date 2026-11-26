@@ -1174,6 +1174,12 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
 .nl-tabp{display:grid;gap:10px;animation:mpFadeUp .25s ease both}
 .nl-tabp[hidden]{display:none}
 @media(prefers-reduced-motion:reduce){.nl-tabp{animation:none}.nl-tab{transition:none}}
+/* ===== Tracker · un botón por equipo dentro de cada categoría ===== */
+.nl-tms{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.nl-tm{min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--r-sm);border:1.5px solid var(--night-line);background:var(--night);color:var(--on-dark-text);font-family:"Barlow Condensed",sans-serif;font-size:18px;font-weight:700;letter-spacing:.03em;cursor:pointer}
+.nl-tm img{width:22px;height:22px;object-fit:contain}
+.nl-tm[aria-pressed="true"]{border-color:var(--pylon);background:rgba(255,106,19,.14);color:var(--white)}
+.nl-tm:active{transform:scale(.96)}
 </style>
 </head>
 <body data-view="semana">
@@ -2173,7 +2179,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   var root=$('nflLive'), list=$('nlList'), updEl=$('nlUpd'), filt=$('nlFilters'), wk=$('nlWeek'), vv=$('viewVivo');
   if(!root||!list) return;
   var URL='https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
-  var games=[], lastOk=0, loading=false, timer=null, filter='todos', open={}, prev={}, firstLoad=true, box={}, acc={}, boxBusy={};
+  var games=[], lastOk=0, loading=false, timer=null, filter='todos', open={}, prev={}, firstLoad=true, box={}, acc={}, boxBusy={}, teamSel={};
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
   /* Estadísticas completas por jugador (resumen del partido de ESPN) */
   var CATS=[['passing','Passing'],['rushing','Rushing'],['receiving','Receiving']];
@@ -2192,8 +2198,13 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   function boxHtml(id,cat){
     var b=box[id]; if(!b) return '<div class="nl-acc-msg">Cargando estadísticas…</div>';
     if(b.err) return '<div class="nl-acc-msg">No se pudieron cargar.<button type="button" data-box-retry="'+esc(id)+'">Reintentar</button></div>';
-    var teams=b.data[cat]||[]; if(!teams.length) return '<div class="nl-acc-msg">Todavía no hay estadísticas de esta categoría.</div>';
-    return teams.map(function(t){
+    var teams=(b.data[cat]||[]).slice(); if(!teams.length) return '<div class="nl-acc-msg">Todavía no hay estadísticas de esta categoría.</div>';
+    /* Orden visitante → local y un botón por equipo; solo se muestra la tabla del elegido */
+    var gm=games.filter(function(x){return x.id===id})[0];
+    if(gm) teams.sort(function(x,y){return (x.ab===gm.home.ab)-(y.ab===gm.home.ab)});
+    var pick=teamSel[id]; if(!teams.some(function(t){return t.ab===pick})) pick=teams[0].ab;
+    var btns='<div class="nl-tms" role="group" aria-label="Equipo">'+teams.map(function(t){return '<button type="button" class="nl-tm" data-tm="'+esc(id+'|'+t.ab)+'" aria-pressed="'+(t.ab===pick)+'">'+(t.logo?'<img src="'+esc(t.logo)+'" alt="">':'')+esc(t.ab)+'</button>'}).join('')+'</div>';
+    return btns+teams.filter(function(t){return t.ab===pick}).map(function(t){
       var th='<tr><th>'+(t.logo?'<img src="'+esc(t.logo)+'" alt="">':'')+esc(t.ab)+'</th>'+t.labels.map(function(l){return '<th>'+esc(LBL[l]||l)+'</th>'}).join('')+'</tr>';
       var rows=t.rows.map(function(r){return '<tr><td>'+esc(r.name)+(r.jersey?' <small>#'+esc(r.jersey)+'</small>':'')+'</td>'+r.stats.map(function(s){return '<td>'+esc(s)+'</td>'}).join('')+'</tr>'}).join('');
       var tot=t.totals.length?'<tr class="tot"><td>Total</td>'+t.totals.map(function(s){return '<td>'+esc(s)+'</td>'}).join('')+'</tr>':'';
@@ -2289,6 +2300,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   }
   filt.addEventListener('click',function(e){var b=e.target.closest('[data-f]'); if(!b) return; filter=b.getAttribute('data-f'); draw(); try{navigator.vibrate&&navigator.vibrate(8)}catch(x){}});
   list.addEventListener('click',function(e){ if(e.target.closest('[data-nl-retry]')){load(true);return}
+    var tm=e.target.closest('.nl-tm'); if(tm){var tk=tm.getAttribute('data-tm'), tid=tk.split('|')[0]; teamSel[tid]=tk.split('|')[1]; paintAcc(tid); try{navigator.vibrate&&navigator.vibrate(8)}catch(x){} return}
     var rb=e.target.closest('[data-box-retry]'); if(rb){var rid=rb.getAttribute('data-box-retry'); delete box[rid]; paintAcc(rid); fetchBox(rid); return}
     var h=e.target.closest('.nl-tab');
     if(h){ var k=h.getAttribute('data-tab'), gid=k.split('|')[0], cat=k.split('|')[1]; acc[gid]=(acc[gid]===cat)?undefined:cat;
