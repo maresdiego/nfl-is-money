@@ -1044,6 +1044,23 @@ body.f6-scrolled .masthead{box-shadow:0 10px 26px rgba(1,35,82,.32)}
   .card,.hist-row,.pen-row,.news-card,.res-card,.ana,.lastplace,.sg,.masthead,.dest-bar button::before{transition:none}
   .dest-bar button[aria-current="page"] svg,.lastplace .poop.f6-wobble{animation:none}
 }
+/* ===== Gestos táctiles (celular) ===== */
+html,body{overscroll-behavior-y:contain}
+.card{-webkit-touch-callout:none}
+.card.f7-press{transform:scale(.97);box-shadow:0 0 0 3px var(--pylon-action)}
+.f7-ptr{position:fixed;left:50%;top:calc(58px + env(safe-area-inset-top,0px));z-index:180;width:42px;height:42px;margin-left:-21px;border-radius:50%;background:var(--surface);box-shadow:var(--elev-2);display:grid;place-items:center;font-size:22px;opacity:0;transform:translateY(-30px) scale(.6);pointer-events:none;transition:opacity var(--dur-1),transform var(--dur-1)}
+.f7-ptr.go{animation:f7spin .7s linear infinite}
+@keyframes f7spin{to{transform:translateY(0) rotate(360deg)}}
+.f7-toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:190;max-width:calc(100% - 32px);transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--white);padding:12px 16px;border-radius:14px;font-size:var(--fs-sm);font-weight:600;line-height:1.35;box-shadow:var(--elev-2);transition:opacity var(--dur-2) var(--ease),transform var(--dur-2) var(--ease);pointer-events:none;text-align:center}
+.f7-toast.show{opacity:1;transform:translate(-50%,0)}
+.f7-me{border-color:var(--pylon-action)!important;color:var(--pylon-action)!important;font-weight:800!important}
+.f7-me[aria-pressed="true"]{background:var(--pylon-action)!important;color:var(--white)!important}
+.f7-swipe-l{animation:f7inL .28s var(--ease)}
+.f7-swipe-r{animation:f7inR .28s var(--ease)}
+@keyframes f7inL{from{transform:translateX(28px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes f7inR{from{transform:translateX(-28px);opacity:.4}to{transform:none;opacity:1}}
+.mast-logo,.mast-brand{cursor:pointer}
+@media(prefers-reduced-motion:reduce){.f7-swipe-l,.f7-swipe-r,.f7-ptr.go{animation:none}.f7-toast,.f7-ptr{transition:none}}
 </style>
 </head>
 <body data-view="semana">
@@ -1929,6 +1946,73 @@ body.f6-scrolled .masthead{box-shadow:0 10px 26px rgba(1,35,82,.32)}
   });
   /* Tambaleo del último lugar */
   document.addEventListener('click',function(e){var p=e.target.closest&&e.target.closest('.lastplace .poop'); if(!p) return; p.classList.remove('f6-wobble'); void p.offsetWidth; p.classList.add('f6-wobble')});
+}();
+</script>
+<script>
+/* Gestos táctiles · solo presentación: cada gesto presiona botones que ya existen
+   (subpestañas, flechas del carrusel, Compartir, Actualizar, filtro de jugador). */
+!function(){
+  var $=function(id){return document.getElementById(id)};
+  var RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var buzz=function(n){try{navigator.vibrate&&navigator.vibrate(n||10)}catch(e){}};
+  /* Aviso breve */
+  var toastEl=document.createElement('div'); toastEl.className='f7-toast'; toastEl.setAttribute('role','status'); document.body.appendChild(toastEl); var tt;
+  var toast=function(msg,ms){toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(tt); tt=setTimeout(function(){toastEl.classList.remove('show')},ms||2200)};
+  window.__f7toast=toast;
+  var NOSWIPE='.table-wrap,.prc-strip,.h2h-row,.sub-nav,.ss-stage,#gamePanel,.pills,.dest-bar,input,select,textarea,.mast-menu,.scores-grid,.q-teams,.q-bonus-opts';
+  var sx=null,sy,st,stg,moved=false;
+  document.addEventListener('touchstart',function(e){if(e.touches.length!==1)return;var t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();stg=e.target;moved=false},{passive:true});
+  document.addEventListener('touchmove',function(e){if(sx==null)return;var t=e.touches[0];if(Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10)moved=true},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(sx==null)return; var t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-st, tg=stg; sx=null;
+    if(dt>700||Math.abs(dx)<60||Math.abs(dx)<1.6*Math.abs(dy)) return;
+    /* 1) Fotos del carrusel */
+    var stage=tg.closest&&tg.closest('.ss-stage');
+    if(stage){var fig=stage.parentElement, ui=fig&&fig.querySelector('.ss-ui'); if(ui&&!ui.hidden){var b=ui.querySelectorAll('.ss-btn'); var btn=dx<0?b[b.length-1]:b[0]; btn&&btn.click(); buzz(8)} return}
+    /* 2) Subpestañas de la sección */
+    if(tg.closest&&tg.closest(NOSWIPE)) return;
+    if(document.body.classList.contains('gp-sheet')) return;
+    var sub=$('subNav'); if(!sub||sub.hidden) return;
+    var bs=[].slice.call(sub.querySelectorAll('[data-sub]')), i=-1;
+    bs.forEach(function(b,k){if(b.getAttribute('aria-pressed')==='true')i=k});
+    var j=i+(dx<0?1:-1); if(i<0||j<0||j>=bs.length){buzz(4);return}
+    bs[j].click(); try{bs[j].scrollIntoView({inline:'center',block:'nearest'})}catch(x){} buzz(8);
+    if(!RM){var root=document.querySelector('.wrap'); if(root){root.classList.remove('f7-swipe-l','f7-swipe-r'); void root.offsetWidth; root.classList.add(dx<0?'f7-swipe-l':'f7-swipe-r')}}
+  },{passive:true});
+  /* 3) Mantener presionado un boleto = Compartir */
+  var lp=null, ignoreClick=false;
+  document.addEventListener('touchstart',function(e){var c=e.target.closest&&e.target.closest('.card'); if(!c||e.target.closest('button,a'))return;
+    clearTimeout(lp); lp=setTimeout(function(){ if(moved) return; var b=c.querySelector('.share-pick-btn'); if(!b) return; ignoreClick=true; c.classList.add('f7-press'); buzz([12,40,12]); toast('Compartiendo el boleto de '+(((c.querySelector('.name')||{}).textContent)||'')+'…',1600); b.click(); setTimeout(function(){c.classList.remove('f7-press')},350)},550)},{passive:true});
+  document.addEventListener('touchend',function(){clearTimeout(lp)},{passive:true});
+  document.addEventListener('touchcancel',function(){clearTimeout(lp)},{passive:true});
+  document.addEventListener('touchmove',function(){if(moved)clearTimeout(lp)},{passive:true});
+  document.addEventListener('click',function(e){ if(ignoreClick&&e.target.closest&&e.target.closest('.card')){e.stopPropagation();e.preventDefault()} ignoreClick=false },true);
+  /* 4) Jalar hacia abajo para actualizar */
+  var ptr=document.createElement('div'); ptr.className='f7-ptr'; ptr.setAttribute('aria-hidden','true'); ptr.textContent='🏈'; document.body.appendChild(ptr);
+  var py=null, pull=0;
+  document.addEventListener('touchstart',function(e){ py=((window.pageYOffset||0)<=0&&!document.body.classList.contains('gp-sheet')&&!(e.target.closest&&e.target.closest('.mast-menu,#gamePanel')))?e.touches[0].clientY:null; pull=0 },{passive:true});
+  document.addEventListener('touchmove',function(e){ if(py==null) return; if((window.pageYOffset||0)>0){py=null;pull=0;ptr.style.opacity=0;return} pull=Math.max(0,e.touches[0].clientY-py);
+    var p=Math.min(1,pull/110); ptr.style.opacity=p; ptr.style.transform='translateY('+(p*40-30)+'px) rotate('+(p*270)+'deg) scale('+(.6+.4*p)+')' },{passive:true});
+  document.addEventListener('touchend',function(){ if(py==null) return; py=null;
+    if(pull>=110){ ptr.classList.add('go'); buzz(15); var v=document.body.getAttribute('data-view');
+      if(v==='semana'&&$('prcRefresh')){ $('prcRefresh').click(); setTimeout(function(){ptr.classList.remove('go');ptr.style.opacity=0;ptr.style.transform='';toast('Picks recibidos actualizados')},900) }
+      else { try{sessionStorage.setItem('f7view',v)}catch(e){} location.reload() } }
+    else { ptr.style.opacity=0; ptr.style.transform='' } pull=0 },{passive:true});
+  /* Regresar a la vista donde estabas después de actualizar */
+  try{var back=sessionStorage.getItem('f7view'); if(back){sessionStorage.removeItem('f7view'); var map={partidos:'.navgrid [data-view-tab="partidos"]',vivo:'.navgrid [data-view-tab="vivo"]',quiniela:'.navgrid [data-view-tab="quiniela"]',tabla:'.navgrid [data-view-tab="tabla"]',h2h:'.navgrid [data-view-tab="h2h"]',historial:'#bigHistBtn',castigos:'#bigCastBtn',pick:'#bigPickBtn'}; var el=map[back]&&document.querySelector(map[back]); el&&el.click(); toast('Actualizado')}}catch(e){}
+  /* 5) Chip "★ Yo" en el filtro de jugadores */
+  var pf=$('playerFilter'), who=$('qWhoamiLine'), qm=$('qMainView');
+  if(pf&&who){ var me=document.createElement('button'); me.type='button'; me.className='f7-me'; me.hidden=true; me.setAttribute('aria-pressed','false'); pf.insertBefore(me,pf.firstChild);
+    var name=function(){var m=/Hola,\s*([A-ZÁÉÍÓÚÑ]+)/.exec(who.textContent||''); return m&&qm&&!qm.hidden?m[1]:null};
+    var set=function(a,v){if(me.getAttribute(a)!==v)me.setAttribute(a,v)};
+    var upd=function(){var n=name(), b=n&&pf.querySelector('[data-pfilter="'+n+'"]'); if(me.hidden!==!b)me.hidden=!b; if(b){if(me.textContent!=='★ Yo')me.textContent='★ Yo';set('aria-label','Ver solo mis boletos ('+n+')');set('aria-pressed',b.getAttribute('aria-pressed')==='true'?'true':'false')}};
+    me.addEventListener('click',function(){var n=name(), b=n&&pf.querySelector('[data-pfilter="'+n+'"]'), all=pf.querySelector('[data-pfilter="all"]'); if(!b)return; (b.getAttribute('aria-pressed')==='true'?all:b).click(); upd(); buzz(8)});
+    if(window.MutationObserver){var mo=new MutationObserver(function(ms){if(ms.some(function(m){return m.target!==me}))upd()}); mo.observe(who,{childList:true,characterData:true,subtree:true}); qm&&mo.observe(qm,{attributes:true,attributeFilter:['hidden']}); mo.observe(pf,{attributes:true,subtree:true,attributeFilter:['aria-pressed']})}
+    upd(); }
+  /* 6) Tocar el logo = volver arriba */
+  [].forEach.call(document.querySelectorAll('.mast-logo,.mast-brand'),function(el){el.addEventListener('click',function(){window.scrollTo({top:0,behavior:RM?'auto':'smooth'})})});
+  /* 7) Aviso de gestos la primera vez (solo en pantallas táctiles) */
+  try{ if(('ontouchstart' in window)&&!localStorage.getItem('f7hint')){ localStorage.setItem('f7hint','1'); setTimeout(function(){toast('Tip: desliza ← → para cambiar de pestaña, mantén presionado un boleto para compartirlo y jala hacia abajo para actualizar.',6000)},1800) } }catch(e){}
 }();
 </script>
 </body>
