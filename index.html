@@ -997,6 +997,13 @@ body.gp-sheet #viewPartidos{animation:none;transform:none}
 .q-welcome .q-fold[hidden]{display:none}
 .q-more{margin-top:10px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--navy);background:transparent;color:var(--navy);font-family:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer}
 @media(prefers-reduced-motion:reduce){.q-team,.q-prog i{transition:none}}
+/* En vivo · balón de americano en la punta de cada barra de progreso */
+.lv-bar{height:8px;border-radius:4px;overflow:visible;margin:10px 12px 10px 0}
+.lv-bar i{position:relative;border-radius:4px;min-width:2px}
+.lv-bar i::after{content:"";position:absolute;right:-12px;top:50%;width:24px;height:16px;transform:translateY(-50%) rotate(-24deg);z-index:2;pointer-events:none;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35));background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 30'%3E%3Cellipse cx='24' cy='15' rx='22.5' ry='13.5' fill='%237a3b12' stroke='%234a2208' stroke-width='1.6'/%3E%3Cpath d='M7 8.5Q4.6 15 7 21.5M41 8.5Q43.4 15 41 21.5' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M15.5 15H32.5' stroke='%23fff' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M18.5 11.8v6.4M22 11.8v6.4M25.5 11.8v6.4M29 11.8v6.4' stroke='%23fff' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.lv-bar.done i::after{animation:lvBallCatch .6s var(--ease) 1}
+@keyframes lvBallCatch{0%{transform:translateY(-50%) rotate(-24deg) scale(1)}40%{transform:translateY(-80%) rotate(-60deg) scale(1.25)}100%{transform:translateY(-50%) rotate(-24deg) scale(1)}}
+@media(prefers-reduced-motion:reduce){.lv-bar.done i::after{animation:none}}
 </style>
 </head>
 <body data-view="semana">
