@@ -1081,6 +1081,67 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   body.parley-live .dest-bar .dest-live span{color:#e0151b;font-weight:800}
 }
 @media(prefers-reduced-motion:reduce){body.parley-live .live-dot{animation:none}}
+/* ===== En vivo › Partidos: tracker de toda la NFL (estilo app de marcadores) ===== */
+#viewVivo.show-nfl > :not(#nflLive){display:none!important}
+#viewVivo:not(.show-nfl) #nflLive{display:none}
+.nfl-live{display:grid;gap:12px}
+.nl-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;background:var(--night);color:var(--white);border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--elev-1)}
+.nl-kicker{font-family:"JetBrains Mono",monospace;font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--on-dark-accent)}
+.nl-title{margin:2px 0 0;font-family:"Barlow Condensed",sans-serif;font-size:30px;line-height:1;text-transform:uppercase}
+.nl-upd{font-family:"JetBrains Mono",monospace;font-size:var(--fs-xs);color:var(--on-night-muted);text-align:right}
+.nl-filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.nl-filters::-webkit-scrollbar{display:none}
+.nl-filters button{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer;white-space:nowrap}
+.nl-filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.nl-filters button .n{display:inline-block;margin-left:6px;min-width:20px;padding:1px 6px;border-radius:999px;background:var(--surface2);color:var(--ink);font-size:12px}
+.nl-filters button[aria-pressed="true"] .n{background:rgba(255,255,255,.18);color:var(--white)}
+.nl-filters button.has-live .n{background:#ff2d2d;color:#fff}
+.nl-day{margin:6px 2px 0;font-family:"JetBrains Mono",monospace;font-size:var(--fs-xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.nl-day.live{color:#e0151b}
+.nl-game{background:var(--night2);color:var(--white);border:1px solid var(--night-line);border-radius:var(--r-md);padding:10px 12px;display:grid;gap:6px;cursor:pointer;box-shadow:var(--elev-1);-webkit-tap-highlight-color:transparent}
+.nl-game:active{transform:scale(.985)}
+.nl-game.in{border-color:#ff4d4d;box-shadow:0 0 0 1px rgba(255,77,77,.35),var(--elev-1)}
+.nl-game.parley{border-left:4px solid var(--pylon)}
+.nl-top{display:flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:var(--fs-xs);font-weight:700;color:var(--on-night-muted)}
+.nl-status{color:var(--on-dark-accent)}
+.nl-game.in .nl-status{color:#ff6b6b}
+.nl-game.in .nl-status::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff3b3b;margin-right:6px;vertical-align:0;animation:f4pulse 1.6s infinite}
+.nl-game.post .nl-status{color:var(--on-night-muted)}
+.nl-tv{margin-left:auto}
+.nl-parley{background:var(--pylon-action);color:var(--white);padding:2px 8px;border-radius:999px;font-family:"Barlow Condensed",sans-serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+.nl-team{display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;gap:8px;min-height:30px}
+.nl-team img{width:28px;height:28px;object-fit:contain}
+.nl-team .ab{font-family:"Barlow Condensed",sans-serif;font-size:21px;font-weight:700;letter-spacing:.02em;line-height:1}
+.nl-team .ab small{margin-left:7px;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:500;color:var(--on-night-muted);letter-spacing:0}
+.nl-team .ball{font-size:14px;visibility:hidden}
+.nl-team.poss .ball{visibility:visible}
+.nl-team .sc{font-family:"Barlow Condensed",sans-serif;font-size:28px;font-weight:800;line-height:1;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.nl-game.post .nl-team.lose{opacity:.55}
+.nl-game.post .nl-team.win .sc::after{content:"◀";font-size:12px;margin-left:4px;color:var(--on-dark-accent);vertical-align:3px}
+.nl-sit{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:700;color:var(--on-dark-text)}
+.nl-rz{background:#e0151b;color:#fff;padding:1px 7px;border-radius:6px;font-family:"JetBrains Mono",monospace;font-size:11px}
+.nl-wp{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--on-night-muted)}
+.nl-wp .bar2{height:6px;border-radius:3px;background:var(--pylon);overflow:hidden}
+.nl-wp .bar2 i{display:block;height:100%;background:var(--on-dark-muted);transition:width .8s var(--ease)}
+.nl-last{margin:0;font-size:13px;line-height:1.35;color:var(--on-night-muted)}
+.nl-pre{font-size:13px;color:var(--on-night-muted)}
+.nl-more{border-top:1px dashed var(--night-line);padding-top:8px;display:grid;gap:8px}
+.nl-more[hidden]{display:none}
+.nl-ls{width:100%;border-collapse:collapse;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--on-dark-text)}
+.nl-ls th,.nl-ls td{padding:4px 2px;text-align:center;border-bottom:1px solid var(--night-line)}
+.nl-ls th:first-child,.nl-ls td:first-child{text-align:left}
+.nl-ls td:last-child{font-weight:800;color:var(--white)}
+.nl-leaders{display:grid;gap:4px;font-size:13px;color:var(--on-dark-text)}
+.nl-leaders b{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--on-dark-accent);margin-right:6px}
+.nl-venue{font-size:12px;color:var(--on-night-muted)}
+.nl-flash{animation:nlFlash 1.4s var(--ease)}
+@keyframes nlFlash{0%{color:var(--pylon);transform:scale(1.35)}100%{transform:none}}
+.nl-msg{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px;text-align:center;font-size:var(--fs-sm)}
+.nl-msg button{margin-top:10px;min-height:44px;padding:0 18px;border-radius:999px;border:0;background:var(--navy);color:var(--white);font-weight:700;font-family:inherit}
+.nl-skel{height:96px;border-radius:var(--r-md);background:linear-gradient(90deg,var(--night2) 0%,var(--night-line) 50%,var(--night2) 100%);background-size:200% 100%;animation:f4shim 1.2s linear infinite}
+@media(min-width:760px){#nlList .nl-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+#nlList .nl-group{display:grid;gap:8px}
+@media(prefers-reduced-motion:reduce){.nl-game.in .nl-status::before,.nl-flash,.nl-skel{animation:none}.nl-wp .bar2 i{transition:none}}
 </style>
 </head>
 <body data-view="semana">
@@ -1563,6 +1624,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
 <p class="lv-error" id="liveError" hidden>No se pudieron cargar los picks recibidos.</p>
 <div class="lv-grid" id="liveGrid"></div>
 <p class="lv-empty" id="liveEmpty" hidden>Todavía no llega ningún pick de esta semana.</p>
+<!-- Tracker de todos los partidos de la NFL (marcador público de ESPN). Se muestra con la subpestaña "Partidos". --><section class="nfl-live" id="nflLive" aria-label="Partidos de la NFL en vivo">  <div class="nl-head"><div><span class="nl-kicker" id="nlWeek">NFL · Semana en curso</span><h2 class="nl-title">Marcadores</h2></div><span class="nl-upd" id="nlUpd"></span></div>  <div class="nl-filters" id="nlFilters" role="group" aria-label="Filtrar partidos"></div>  <div id="nlList" aria-live="polite"></div></section>
 </div>
 
 <div id="viewQuiniela" hidden>
@@ -1751,6 +1813,8 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   var SUBS={
     jornada:[['semana','Semana',function(){window.switchView?switchView('semana'):$('bigHomeBtn').click()}],
              ['pick',(function(){var t=subLabel('bigPickBtn','');return t?'Así quedó '+t.replace('Semana ','S'):'Así quedó'})(),function(){$('bigPickBtn').click()}]],
+    vivo:[['vivo','Parley',function(){var vv=$('viewVivo');vv&&vv.classList.remove('show-nfl');tab('vivo').click();sync()}],
+          ['vivo-nfl','Partidos',function(){var vv=$('viewVivo');tab('vivo').click();vv&&vv.classList.add('show-nfl');sync();document.dispatchEvent(new Event('nfl:show'))}]],
     grupo:[['tabla','Tabla',function(){tab('tabla').click()}],['historial','Historial',function(){$('bigHistBtn').click()}],
            ['h2h','Cara a cara',function(){tab('h2h').click()}],['castigos','Castigos',function(){$('bigCastBtn').click()}]]
   };
@@ -1770,9 +1834,12 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
         b.addEventListener('click',function(){it[2]()});sub.appendChild(b)});
       sub.setAttribute('data-for',d);
     }
-    [].forEach.call(sub.querySelectorAll('[data-sub]'),function(b){b.setAttribute('aria-pressed',b.getAttribute('data-sub')===v?'true':'false')});
+    var vv=$('viewVivo'), cur=(v==='vivo'&&vv&&vv.classList.contains('show-nfl'))?'vivo-nfl':v;
+    [].forEach.call(sub.querySelectorAll('[data-sub]'),function(b){b.setAttribute('aria-pressed',b.getAttribute('data-sub')===cur?'true':'false')});
     sub.hidden=false;
+    if(cur==='vivo-nfl') document.dispatchEvent(new Event('nfl:show'));
   }
+  window.__navSync=function(){sync()};
   bar.addEventListener('click',function(e){
     var b=e.target.closest&&e.target.closest('[data-dest]'); if(!b) return;
     var d=b.getAttribute('data-dest'), cur=DEST[document.body.getAttribute('data-view')]||'jornada';
@@ -2015,7 +2082,8 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
     var p=Math.min(1,pull/110); ptr.style.opacity=p; ptr.style.transform='translateY('+(p*40-30)+'px) rotate('+(p*270)+'deg) scale('+(.6+.4*p)+')' },{passive:true});
   document.addEventListener('touchend',function(){ if(py==null) return; py=null;
     if(pull>=110){ ptr.classList.add('go'); buzz(15); var v=document.body.getAttribute('data-view');
-      if(v==='semana'&&$('prcRefresh')){ $('prcRefresh').click(); setTimeout(function(){ptr.classList.remove('go');ptr.style.opacity=0;ptr.style.transform='';toast('Picks recibidos actualizados')},900) }
+      if(v==='vivo'&&$('viewVivo')&&$('viewVivo').classList.contains('show-nfl')){ document.dispatchEvent(new Event('nfl:refresh')); setTimeout(function(){ptr.classList.remove('go');ptr.style.opacity=0;ptr.style.transform='';toast('Marcadores actualizados')},900) }
+      else if(v==='semana'&&$('prcRefresh')){ $('prcRefresh').click(); setTimeout(function(){ptr.classList.remove('go');ptr.style.opacity=0;ptr.style.transform='';toast('Picks recibidos actualizados')},900) }
       else { try{sessionStorage.setItem('f7view',v)}catch(e){} location.reload() } }
     else { ptr.style.opacity=0; ptr.style.transform='' } pull=0 },{passive:true});
   /* Regresar a la vista donde estabas después de actualizar */
@@ -2062,6 +2130,106 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   }
   var g=document.getElementById('liveGrid'); g&&window.MutationObserver&&new MutationObserver(update).observe(g,{childList:true,subtree:true});
   update(); setInterval(update,60000);
+}();
+</script>
+<script>
+/* En vivo › Partidos: tracker de toda la NFL con el marcador público de ESPN (solo lectura).
+   Se activa con la subpestaña "Partidos" (evento nfl:show); se actualiza cada 30 s si hay
+   partidos en juego y cada 2 min si no, solo mientras está a la vista. */
+!function(){
+  var $=function(id){return document.getElementById(id)};
+  var root=$('nflLive'), list=$('nlList'), updEl=$('nlUpd'), filt=$('nlFilters'), wk=$('nlWeek'), vv=$('viewVivo');
+  if(!root||!list) return;
+  var URL='https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
+  var games=[], lastOk=0, loading=false, timer=null, filter='todos', open={}, prev={}, firstLoad=true;
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  var ALIAS={WAS:'WSH',LA:'LAR',ARZ:'ARI'};
+  var norm=function(a){return ALIAS[a]||a};
+  function parleyMap(){var m={};try{var PA=window.PARTIDOS_ASIGNADOS,w=Object.keys(PA).reduce(function(a,b){return +b>+a?b:a});PA[w].forEach(function(g){m[norm(g[1])+'@'+norm(g[2])]=g[0]})}catch(e){}return m}
+  var PARLEY=parleyMap();
+  function logo(ab,url){try{if(typeof TEAM_LOGOS!=='undefined'){var k=TEAM_LOGOS[ab]||TEAM_LOGOS[ab==='WSH'?'WAS':ab==='ARI'?'ARZ':ab];if(k)return k}}catch(e){}return url||''}
+  var fmtDay=function(d){try{return new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',weekday:'long',day:'numeric',month:'short'}).format(d)}catch(e){return d.toDateString()}};
+  var fmtTime=function(d){try{return new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',hour:'numeric',minute:'2-digit'}).format(d)}catch(e){return ''}};
+  var ord=function(p){return p>4?'Tiempo extra':(p+'º')};
+  function parse(j){
+    var out=[]; (j.events||[]).forEach(function(ev){ try{
+      var c=ev.competitions[0], st=ev.status||c.status, ty=st.type||{}, sit=c.situation||{};
+      var team=function(side){var x=(c.competitors||[]).filter(function(t){return t.homeAway===side})[0]||{}, t=x.team||{};
+        return {id:t.id, ab:norm(t.abbreviation||''), name:t.shortDisplayName||t.displayName||'', logo:logo(norm(t.abbreviation||''),t.logo), score:x.score, winner:!!x.winner,
+          rec:((x.records||[])[0]||{}).summary||'', ls:(x.linescores||[]).map(function(l){return l.displayValue!=null?l.displayValue:l.value})}};
+      var a=team('away'), h=team('home');
+      var leaders=[]; (c.leaders||[]).forEach(function(L){var l=(L.leaders||[])[0]; if(l&&l.athlete) leaders.push({cat:L.shortDisplayName||L.abbreviation||'', who:l.athlete.shortName||l.athlete.displayName, val:l.displayValue})});
+      var prob=sit.lastPlay&&sit.lastPlay.probability;
+      out.push({id:ev.id, date:new Date(ev.date), state:ty.state||'pre', detail:ty.shortDetail||ty.detail||'', period:st.period, clock:st.displayClock,
+        away:a, home:h, poss:sit.possession||null, dd:sit.downDistanceText||'', rz:!!sit.isRedZone, last:(sit.lastPlay&&sit.lastPlay.text)||'',
+        hwp:prob&&typeof prob.homeWinPercentage==='number'?prob.homeWinPercentage:null,
+        tv:((c.broadcasts||[])[0]||{}).names?c.broadcasts[0].names.join(', '):'', venue:(c.venue||{}).fullName||'', odds:((c.odds||[])[0]||{}).details||'',
+        leaders:leaders.slice(0,3), parley:PARLEY[a.ab+'@'+h.ab]||null});
+    }catch(e){} });
+    out.sort(function(x,y){return x.date-y.date}); return out;
+  }
+  function counts(){var c={todos:games.length,vivo:0,prox:0,fin:0,parley:0};games.forEach(function(g){if(g.state==='in')c.vivo++;else if(g.state==='pre')c.prox++;else c.fin++;if(g.parley)c.parley++});return c}
+  function drawFilters(){
+    var c=counts(), F=[['todos','Todos',c.todos],['vivo','En vivo',c.vivo],['parley','Parley',c.parley],['prox','Próximos',c.prox],['fin','Finales',c.fin]];
+    filt.innerHTML=F.map(function(f){return '<button type="button" data-f="'+f[0]+'" aria-pressed="'+(filter===f[0])+'" class="'+(f[0]==='vivo'&&f[2]?'has-live':'')+'">'+f[1]+'<span class="n">'+f[2]+'</span></button>'}).join('');
+  }
+  function teamRow(t,g,side){
+    var poss=g.state==='in'&&g.poss&&String(g.poss)===String(t.id), res=g.state==='post'?(t.winner?' win':' lose'):'';
+    return '<div class="nl-team'+(poss?' poss':'')+res+'"><img src="'+esc(t.logo)+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span class="ab">'+esc(t.ab)+'<small>'+esc(t.rec)+'</small></span><span class="ball" aria-hidden="true">🏈</span><strong class="sc" data-k="'+g.id+side+'">'+(g.state==='pre'?'':esc(t.score))+'</strong></div>';
+  }
+  function card(g){
+    var status=g.state==='in'?esc(g.clock+' · '+ord(g.period)):g.state==='post'?'Final'+(g.period>4?' · TE':''):esc(fmtTime(g.date));
+    if(g.state==='in'&&/half/i.test(g.detail)) status='Medio tiempo';
+    if(g.state==='in'&&/end of/i.test(g.detail)) status='Fin del '+ord(g.period);
+    var h='<article class="nl-game '+g.state+(g.parley?' parley':'')+'" data-id="'+g.id+'" tabindex="0" role="button" aria-expanded="'+(!!open[g.id])+'" aria-label="'+esc(g.away.name+' en '+g.home.name)+'">';
+    h+='<div class="nl-top"><span class="nl-status">'+status+'</span>'+(g.parley?'<span class="nl-parley">Parley · '+esc(g.parley)+'</span>':'')+'<span class="nl-tv">'+esc(g.tv)+'</span></div>';
+    h+=teamRow(g.away,g,'a')+teamRow(g.home,g,'h');
+    if(g.state==='in'){
+      if(g.dd) h+='<div class="nl-sit"><span>'+esc(g.dd)+'</span>'+(g.rz?'<span class="nl-rz">ZONA ROJA</span>':'')+'</div>';
+      if(g.hwp!=null){var aw=Math.round((1-g.hwp)*100); h+='<div class="nl-wp" aria-label="Probabilidad de ganar"><span>'+esc(g.away.ab)+' '+aw+'%</span><span class="bar2"><i style="width:'+aw+'%"></i></span><span>'+(100-aw)+'% '+esc(g.home.ab)+'</span></div>'}
+      if(g.last) h+='<p class="nl-last">'+esc(g.last)+'</p>';
+    } else if(g.state==='pre'){ h+='<div class="nl-pre">'+esc([g.odds,g.venue].filter(Boolean).join(' · '))+'</div>' }
+    var more='';
+    if(g.away.ls.length||g.home.ls.length){var n=Math.max(g.away.ls.length,g.home.ls.length,4), th='<tr><th></th>';for(var i=0;i<n;i++)th+='<th>'+(i<4?(i+1):'TE')+'</th>';th+='<th>T</th></tr>';
+      var row=function(t){var r='<tr><td>'+esc(t.ab)+'</td>';for(var i=0;i<n;i++)r+='<td>'+esc(t.ls[i]!=null?t.ls[i]:'–')+'</td>';return r+'<td>'+esc(t.score)+'</td></tr>'};
+      more+='<table class="nl-ls">'+th+row(g.away)+row(g.home)+'</table>'}
+    if(g.leaders.length) more+='<div class="nl-leaders">'+g.leaders.map(function(l){return '<div><b>'+esc(l.cat)+'</b>'+esc(l.who)+' · '+esc(l.val)+'</div>'}).join('')+'</div>';
+    if(g.venue&&g.state!=='pre') more+='<div class="nl-venue">'+esc(g.venue)+'</div>';
+    if(more) h+='<div class="nl-more"'+(open[g.id]?'':' hidden')+'>'+more+'</div>';
+    return h+'</article>';
+  }
+  function draw(){
+    drawFilters();
+    var sel=games.filter(function(g){return filter==='todos'||(filter==='vivo'&&g.state==='in')||(filter==='prox'&&g.state==='pre')||(filter==='fin'&&g.state==='post')||(filter==='parley'&&g.parley)});
+    if(!sel.length){list.innerHTML='<div class="nl-msg">'+(filter==='vivo'?'No hay partidos en juego en este momento.':'No hay partidos en este filtro.')+'</div>';return}
+    var html='', live=filter==='todos'?sel.filter(function(g){return g.state==='in'}):[], rest=filter==='todos'?sel.filter(function(g){return g.state!=='in'}):sel;
+    if(live.length) html+='<p class="nl-day live">En vivo ahora</p><div class="nl-group">'+live.map(card).join('')+'</div>';
+    var day='', grp=[];
+    var flush=function(){if(grp.length){html+='<p class="nl-day">'+esc(day)+'</p><div class="nl-group">'+grp.join('')+'</div>';grp=[]}};
+    rest.forEach(function(g){var d=fmtDay(g.date); if(d!==day){flush();day=d} grp.push(card(g))}); flush();
+    list.innerHTML=html;
+    /* destello si cambió un marcador desde la última carga */
+    games.forEach(function(g){['a','h'].forEach(function(s){var k=g.id+s, v=(s==='a'?g.away:g.home).score; if(!firstLoad&&prev[k]!=null&&String(prev[k])!==String(v)){var el=list.querySelector('[data-k="'+k+'"]'); if(el){el.classList.add('nl-flash'); try{navigator.vibrate&&navigator.vibrate([20,40,20])}catch(e){}}} prev[k]=v})});
+    firstLoad=false;
+  }
+  function stamp(){ if(!lastOk){updEl.textContent='';return} var m=Math.floor((Date.now()-lastOk)/60000); updEl.textContent=m<1?'Actualizado '+fmtTime(new Date(lastOk)):'Hace '+m+' min'; }
+  function visible(){return vv&&!vv.hidden&&vv.classList.contains('show-nfl')&&document.body.getAttribute('data-view')==='vivo'&&!document.hidden}
+  function schedule(){clearTimeout(timer); var live=games.some(function(g){return g.state==='in'}); timer=setTimeout(function(){ if(visible()) load(); else schedule() }, live?30000:120000)}
+  function load(force){
+    if(loading) return; if(!force&&lastOk&&Date.now()-lastOk<20000){stamp();schedule();return}
+    loading=true; if(!games.length) list.innerHTML='<div class="nl-skel"></div><div class="nl-skel"></div><div class="nl-skel"></div>';
+    fetch(URL,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json()}).then(function(j){
+      games=parse(j); lastOk=Date.now(); var w=j.week&&j.week.number; if(wk) wk.textContent='NFL · Semana '+(w||'')+(j.season&&j.season.type===3?' · Playoffs':''); draw(); stamp();
+    }).catch(function(){ if(!games.length) list.innerHTML='<div class="nl-msg">No se pudieron cargar los marcadores.<br><button type="button" data-nl-retry>Reintentar</button></div>'; else updEl.textContent='Sin conexión · '+(updEl.textContent||'') })
+      .then(function(){loading=false;schedule()});
+  }
+  filt.addEventListener('click',function(e){var b=e.target.closest('[data-f]'); if(!b) return; filter=b.getAttribute('data-f'); draw(); try{navigator.vibrate&&navigator.vibrate(8)}catch(x){}});
+  list.addEventListener('click',function(e){ if(e.target.closest('[data-nl-retry]')){load(true);return} var a=e.target.closest('.nl-game'); if(!a) return; var id=a.getAttribute('data-id'); open[id]=!open[id]; a.setAttribute('aria-expanded',open[id]?'true':'false'); var m=a.querySelector('.nl-more'); m&&(m.hidden=!open[id]) });
+  list.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('nl-game')){e.preventDefault();e.target.click()} });
+  document.addEventListener('nfl:show',function(){ load(false) });
+  document.addEventListener('nfl:refresh',function(){ load(true) });
+  document.addEventListener('visibilitychange',function(){ if(visible()) load(false) });
+  setInterval(stamp,30000);
 }();
 </script>
 </body>
