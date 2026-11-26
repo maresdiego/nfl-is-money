@@ -1142,6 +1142,30 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
 @media(min-width:760px){#nlList .nl-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 #nlList .nl-group{display:grid;gap:8px}
 @media(prefers-reduced-motion:reduce){.nl-game.in .nl-status::before,.nl-flash,.nl-skel{animation:none}.nl-wp .bar2 i{transition:none}}
+/* ===== Tracker · secciones plegables de estadísticas por jugador ===== */
+.nl-acc{display:grid;gap:6px}
+.nl-acc-i{border:1px solid var(--night-line);border-radius:var(--r-sm);overflow:hidden;background:rgba(255,255,255,.02)}
+.nl-acc-i.on{border-color:var(--pylon)}
+.nl-acc-h{width:100%;min-height:44px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:8px 10px;border:0;background:transparent;color:var(--white);font-family:inherit;text-align:left;cursor:pointer}
+.nl-acc-h b{font-family:"Barlow Condensed",sans-serif;font-size:17px;letter-spacing:.04em;text-transform:uppercase;color:var(--on-dark-accent)}
+.nl-acc-h span{font-size:13px;color:var(--on-dark-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.nl-acc-h i{font-style:normal;color:var(--on-dark-accent);transition:transform var(--dur-2) var(--ease)}
+.nl-acc-i.on .nl-acc-h i{transform:rotate(180deg)}
+.nl-acc-b{padding:0 8px 10px;display:grid;gap:10px;animation:mpFadeUp .25s ease both}
+.nl-acc-b[hidden]{display:none}
+.nl-acc-msg{font-size:13px;color:var(--on-night-muted);padding:6px 2px}
+.nl-acc-msg button{margin-left:8px;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--on-dark-muted);background:transparent;color:var(--white);font-weight:700;font-family:inherit}
+.nl-box{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:6px;background:var(--night)}
+.nl-box table{border-collapse:collapse;min-width:100%;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--on-dark-text);font-variant-numeric:tabular-nums}
+.nl-box th,.nl-box td{padding:7px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--night-line)}
+.nl-box th{color:var(--on-night-muted);font-weight:700;font-size:11px;letter-spacing:.05em;background:var(--night)}
+.nl-box th:first-child,.nl-box td:first-child{text-align:left;position:sticky;left:0;background:var(--night);font-family:"Barlow",sans-serif;font-size:13px;color:var(--white);z-index:1;box-shadow:1px 0 0 var(--night-line)}
+.nl-box th:first-child{font-family:"Barlow Condensed",sans-serif;font-size:16px;letter-spacing:.03em}
+.nl-box th:first-child img{width:18px;height:18px;object-fit:contain;vertical-align:-4px;margin-right:6px}
+.nl-box td small{color:var(--on-night-muted);font-size:11px}
+.nl-box tr.tot td{font-weight:800;color:var(--white);border-bottom:0;background:rgba(255,106,19,.10)}
+.nl-box tr.tot td:first-child{background:#1a2333}
+@media(prefers-reduced-motion:reduce){.nl-acc-b{animation:none}.nl-acc-h i{transition:none}}
 </style>
 </head>
 <body data-view="semana">
@@ -2141,8 +2165,34 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
   var root=$('nflLive'), list=$('nlList'), updEl=$('nlUpd'), filt=$('nlFilters'), wk=$('nlWeek'), vv=$('viewVivo');
   if(!root||!list) return;
   var URL='https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
-  var games=[], lastOk=0, loading=false, timer=null, filter='todos', open={}, prev={}, firstLoad=true;
+  var games=[], lastOk=0, loading=false, timer=null, filter='todos', open={}, prev={}, firstLoad=true, box={}, acc={}, boxBusy={};
   var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  /* Estadísticas completas por jugador (resumen del partido de ESPN) */
+  var CATS=[['passing','Pase'],['rushing','Carrera'],['receiving','Recepción']];
+  var LBL={'C/ATT':'COMP','AVG':'PROM','SACKS':'CAPT','CAR':'ACAR','LONG':'LARGA','TGTS':'OBJ'};
+  function fetchBox(id){
+    if(boxBusy[id]) return; boxBusy[id]=true;
+    fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event='+encodeURIComponent(id),{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw new Error('http');return r.json()})
+      .then(function(j){var d={}; ((j.boxscore||{}).players||[]).forEach(function(p){var t=p.team||{}, ab=norm(t.abbreviation||'');
+          (p.statistics||[]).forEach(function(s){ if(!s||!s.name) return; (d[s.name]=d[s.name]||[]).push({ab:ab, logo:logo(ab,t.logo), labels:s.labels||[], totals:s.totals||[],
+            rows:(s.athletes||[]).map(function(a){var at=a.athlete||{};return {name:at.shortName||at.displayName||'', jersey:at.jersey||'', stats:a.stats||[]}})}) })});
+        box[id]={t:Date.now(), data:d} })
+      .catch(function(){ box[id]={t:Date.now(), err:true} })
+      .then(function(){ boxBusy[id]=false; paintAcc(id) });
+  }
+  function boxHtml(id,cat){
+    var b=box[id]; if(!b) return '<div class="nl-acc-msg">Cargando estadísticas…</div>';
+    if(b.err) return '<div class="nl-acc-msg">No se pudieron cargar.<button type="button" data-box-retry="'+esc(id)+'">Reintentar</button></div>';
+    var teams=b.data[cat]||[]; if(!teams.length) return '<div class="nl-acc-msg">Todavía no hay estadísticas de esta categoría.</div>';
+    return teams.map(function(t){
+      var th='<tr><th>'+(t.logo?'<img src="'+esc(t.logo)+'" alt="">':'')+esc(t.ab)+'</th>'+t.labels.map(function(l){return '<th>'+esc(LBL[l]||l)+'</th>'}).join('')+'</tr>';
+      var rows=t.rows.map(function(r){return '<tr><td>'+esc(r.name)+(r.jersey?' <small>#'+esc(r.jersey)+'</small>':'')+'</td>'+r.stats.map(function(s){return '<td>'+esc(s)+'</td>'}).join('')+'</tr>'}).join('');
+      var tot=t.totals.length?'<tr class="tot"><td>Total</td>'+t.totals.map(function(s){return '<td>'+esc(s)+'</td>'}).join('')+'</tr>':'';
+      return '<div class="nl-box"><table>'+th+rows+tot+'</table></div>'}).join('');
+  }
+  function paintAcc(id){ CATS.forEach(function(c){ var k=id+'|'+c[0], el=list.querySelector('[data-acc-b="'+k+'"]'); if(el&&acc[k]) el.innerHTML=boxHtml(id,c[0]) }) }
+  function needBox(id,live){ var b=box[id]; return !b||b.err&&!boxBusy[id]||(live&&Date.now()-b.t>30000) }
   var ALIAS={WAS:'WSH',LA:'LAR',ARZ:'ARI'};
   var norm=function(a){return ALIAS[a]||a};
   function parleyMap(){var m={};try{var PA=window.PARTIDOS_ASIGNADOS,w=Object.keys(PA).reduce(function(a,b){return +b>+a?b:a});PA[w].forEach(function(g){m[norm(g[1])+'@'+norm(g[2])]=g[0]})}catch(e){}return m}
@@ -2158,7 +2208,7 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
         return {id:t.id, ab:norm(t.abbreviation||''), name:t.shortDisplayName||t.displayName||'', logo:logo(norm(t.abbreviation||''),t.logo), score:x.score, winner:!!x.winner,
           rec:((x.records||[])[0]||{}).summary||'', ls:(x.linescores||[]).map(function(l){return l.displayValue!=null?l.displayValue:l.value})}};
       var a=team('away'), h=team('home');
-      var leaders=[]; (c.leaders||[]).forEach(function(L){var l=(L.leaders||[])[0]; if(l&&l.athlete) leaders.push({cat:L.shortDisplayName||L.abbreviation||'', who:l.athlete.shortName||l.athlete.displayName, val:l.displayValue})});
+      var leaders=[]; (c.leaders||[]).forEach(function(L){var l=(L.leaders||[])[0], nm=String(L.name||''); if(l&&l.athlete) leaders.push({key:/pass/i.test(nm)?'passing':/rush/i.test(nm)?'rushing':/rec/i.test(nm)?'receiving':nm, cat:L.shortDisplayName||L.abbreviation||'', who:l.athlete.shortName||l.athlete.displayName, val:l.displayValue})});
       var prob=sit.lastPlay&&sit.lastPlay.probability;
       out.push({id:ev.id, date:new Date(ev.date), state:ty.state||'pre', detail:ty.shortDetail||ty.detail||'', period:st.period, clock:st.displayClock,
         away:a, home:h, poss:sit.possession||null, dd:sit.downDistanceText||'', rz:!!sit.isRedZone, last:(sit.lastPlay&&sit.lastPlay.text)||'',
@@ -2193,7 +2243,13 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
     if(g.away.ls.length||g.home.ls.length){var n=Math.max(g.away.ls.length,g.home.ls.length,4), th='<tr><th></th>';for(var i=0;i<n;i++)th+='<th>'+(i<4?(i+1):'TE')+'</th>';th+='<th>T</th></tr>';
       var row=function(t){var r='<tr><td>'+esc(t.ab)+'</td>';for(var i=0;i<n;i++)r+='<td>'+esc(t.ls[i]!=null?t.ls[i]:'–')+'</td>';return r+'<td>'+esc(t.score)+'</td></tr>'};
       more+='<table class="nl-ls">'+th+row(g.away)+row(g.home)+'</table>'}
-    if(g.leaders.length) more+='<div class="nl-leaders">'+g.leaders.map(function(l){return '<div><b>'+esc(l.cat)+'</b>'+esc(l.who)+' · '+esc(l.val)+'</div>'}).join('')+'</div>';
+    if(g.state!=='pre'){
+      more+='<div class="nl-acc">'+CATS.map(function(c){
+        var k=g.id+'|'+c[0], on=!!acc[k], ld=g.leaders.filter(function(l){return l.key===c[0]})[0];
+        return '<div class="nl-acc-i'+(on?' on':'')+'"><button type="button" class="nl-acc-h" data-acc="'+esc(k)+'" aria-expanded="'+on+'"><b>'+c[1]+'</b><span>'+(ld?esc(ld.who)+' · '+esc(ld.val):'Ver jugadores')+'</span><i aria-hidden="true">▾</i></button>'+
+               '<div class="nl-acc-b" data-acc-b="'+esc(k)+'"'+(on?'':' hidden')+'>'+(on?boxHtml(g.id,c[0]):'')+'</div></div>'}).join('')+'</div>';
+      if(CATS.some(function(c){return acc[g.id+'|'+c[0]]})&&needBox(g.id,g.state==='in')) fetchBox(g.id);
+    }
     if(g.venue&&g.state!=='pre') more+='<div class="nl-venue">'+esc(g.venue)+'</div>';
     if(more) h+='<div class="nl-more"'+(open[g.id]?'':' hidden')+'>'+more+'</div>';
     return h+'</article>';
@@ -2224,7 +2280,15 @@ body.parley-live .dest-live span::after{content:" · LIVE";font-weight:800}
       .then(function(){loading=false;schedule()});
   }
   filt.addEventListener('click',function(e){var b=e.target.closest('[data-f]'); if(!b) return; filter=b.getAttribute('data-f'); draw(); try{navigator.vibrate&&navigator.vibrate(8)}catch(x){}});
-  list.addEventListener('click',function(e){ if(e.target.closest('[data-nl-retry]')){load(true);return} var a=e.target.closest('.nl-game'); if(!a) return; var id=a.getAttribute('data-id'); open[id]=!open[id]; a.setAttribute('aria-expanded',open[id]?'true':'false'); var m=a.querySelector('.nl-more'); m&&(m.hidden=!open[id]) });
+  list.addEventListener('click',function(e){ if(e.target.closest('[data-nl-retry]')){load(true);return}
+    var rb=e.target.closest('[data-box-retry]'); if(rb){var rid=rb.getAttribute('data-box-retry'); delete box[rid]; paintAcc(rid); fetchBox(rid); return}
+    var h=e.target.closest('.nl-acc-h');
+    if(h){ var k=h.getAttribute('data-acc'), gid=k.split('|')[0], cat=k.split('|')[1]; acc[k]=!acc[k]; h.setAttribute('aria-expanded',acc[k]?'true':'false'); h.parentNode.classList.toggle('on',!!acc[k]);
+      var body=list.querySelector('[data-acc-b="'+k+'"]'); if(body){body.hidden=!acc[k]; if(acc[k]) body.innerHTML=boxHtml(gid,cat)}
+      if(acc[k]){var gg=games.filter(function(x){return x.id===gid})[0]; if(needBox(gid,gg&&gg.state==='in')) fetchBox(gid)}
+      try{navigator.vibrate&&navigator.vibrate(8)}catch(x){} return }
+    if(e.target.closest('.nl-more')) return;
+    var a=e.target.closest('.nl-game'); if(!a) return; var id=a.getAttribute('data-id'); open[id]=!open[id]; a.setAttribute('aria-expanded',open[id]?'true':'false'); var m=a.querySelector('.nl-more'); m&&(m.hidden=!open[id]) });
   list.addEventListener('keydown',function(e){ if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('nl-game')){e.preventDefault();e.target.click()} });
   document.addEventListener('nfl:show',function(){ load(false) });
   document.addEventListener('nfl:refresh',function(){ load(true) });
