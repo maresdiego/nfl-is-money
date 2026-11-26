@@ -1354,6 +1354,23 @@ body:not([data-view="semana"]) .install-cta{display:none}
 .mp-form input,.mp-form select{width:100%;min-width:0;box-sizing:border-box}
 .mp-form,.mp-builder,.mp-head,.mp-card{min-width:0}
 @media(max-width:380px){.sub-nav button{padding-left:10px;padding-right:10px;font-size:14px}}
+/* ===== Guía para agregar a la pantalla de inicio ===== */
+.inst-guide{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:16px 16px calc(24px + env(safe-area-inset-bottom));background:rgba(1,20,45,.62)}
+.inst-sheet{position:relative;width:100%;max-width:440px;background:#fff;color:#0b1b2b;opacity:1;border-radius:20px;padding:20px 18px 16px;box-shadow:0 18px 50px rgba(0,0,0,.35);animation:instUp .25s ease-out}
+.inst-kicker{margin:0;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--pylon-action,#f25c05)}
+.inst-sheet h3{margin:4px 0 12px;font-family:"Barlow Condensed",sans-serif;font-size:26px;line-height:1.05;text-transform:uppercase;color:var(--navy,#012352)}
+.inst-sheet ol{margin:0 0 14px;padding:0;list-style:none;counter-reset:st;display:grid;gap:10px}
+.inst-sheet li{counter-increment:st;position:relative;padding:10px 12px 10px 46px;border-radius:12px;background:#f2f5f9;font-size:15px;line-height:1.4}
+.inst-sheet li::before{content:counter(st);position:absolute;left:12px;top:10px;width:24px;height:24px;border-radius:50%;background:var(--navy,#012352);color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center}
+.inst-sheet li svg{vertical-align:-4px;color:#0a84ff}
+.inst-x{position:absolute;top:10px;right:10px;width:40px;height:40px;border:0;border-radius:50%;background:transparent;font-size:18px;cursor:pointer;color:var(--muted,#5b6b7c)}
+.inst-ok,.inst-copy{display:block;width:100%;min-height:48px;margin-top:8px;border-radius:999px;font-weight:800;font-size:16px;cursor:pointer}
+.inst-ok{border:0;background:var(--pylon-action,#f25c05);color:#fff}
+.inst-copy{border:1px solid var(--line,#d3dbe4);background:#fff;color:var(--navy,#012352)}
+.inst-arrow{margin-top:10px;font-size:34px;line-height:1;color:#fff;animation:instBob 1s ease-in-out infinite}
+@keyframes instUp{from{transform:translateY(30px)}to{transform:none}}
+@keyframes instBob{50%{transform:translateY(8px)}}
+@media(prefers-reduced-motion:reduce){.inst-sheet,.inst-arrow{animation:none}}
 </style>
 </head>
 <body data-view="semana">
@@ -2543,30 +2560,66 @@ body:not([data-view="semana"]) .install-cta{display:none}
 }();
 </script>
 <script>
-/* Agregar a la pantalla de inicio. iPhone/iPad: Safari no permite abrir "Agregar a inicio" desde la
-   página; el botón abre el menú Compartir y explica dónde tocar. Android/Chrome: instalador real
-   (beforeinstallprompt). Se oculta si la página ya corre instalada. */
+/* Agregar a la pantalla de inicio.
+   iPhone/iPad: ninguna página puede abrir "Agregar a inicio" (Apple no lo pone en el menú de compartir que
+   abre una página, solo en el botón Compartir del propio navegador). Por eso el botón abre una guía con los
+   pasos según el navegador: Safari, Chrome, otros, o apps como WhatsApp/Instagram (ahí hay que abrir Safari).
+   Android/Chrome: instalador real (beforeinstallprompt); si el navegador no lo ofrece, guía del menú ⋮.
+   Se oculta si la página ya corre instalada. */
 !function(){
   var cta=document.getElementById('installCta'), btn=document.getElementById('installBtn'), hint=document.getElementById('installHint');
   if(!cta||!btn) return;
   var standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
   if(standalone) return;
   var ua=navigator.userAgent||'', ios=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var android=/android/i.test(ua), ipad=/ipad/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var inApp=/FBAN|FBAV|Instagram|WhatsApp|Line\/|Messenger|Snapchat|TikTok|Twitter/i.test(ua);
+  var browser=/CriOS/i.test(ua)?'chrome':/FxiOS/i.test(ua)?'firefox':/EdgiOS/i.test(ua)?'edge':inApp?'app':'safari';
   var deferred=null;
   var toast=function(m,ms){ if(window.__f7toast) window.__f7toast(m,ms); };
-  function show(){ cta.hidden=!(ios||deferred); if(ios&&hint) hint.textContent='Se abre el menú de Compartir: desliza y toca «Agregar a inicio».'; }
+  var SHARE='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M8 7l4-4 4 4M6 11H5v10h14V11h-1"/></svg>';
+  var PLUS='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  function steps(){
+    if(android) return { t:'Agrégala desde el menú', s:[
+      'Toca el menú <b>⋮</b> arriba a la derecha del navegador.',
+      'Elige <b>«Agregar a la pantalla principal»</b> o <b>«Instalar app»</b>.',
+      'Confirma con <b>Agregar</b>. Listo: queda como app en tu pantalla.' ] };
+    if(browser==='app') return { t:'Primero ábrela en Safari', s:[
+      'Estás dentro de otra app (WhatsApp, Instagram…), y desde ahí no se puede agregar.',
+      'Toca el menú <b>⋯</b> o el ícono de brújula y elige <b>«Abrir en Safari»</b>.',
+      'Ya en Safari, vuelve a tocar el botón naranja y sigue los pasos.' ] };
+    if(browser==='chrome') return { t:'En Chrome de iPhone', s:[
+      'Toca el botón '+SHARE+' <b>Compartir</b> en la barra de dirección, arriba a la derecha.',
+      'Desliza hacia abajo y toca '+PLUS+' <b>«Agregar a pantalla de inicio»</b>.',
+      'Toca <b>Agregar</b>. Listo.' ] };
+    if(browser!=='safari') return { t:'Ábrela en Safari', s:[
+      'Este navegador no deja agregar páginas a la pantalla de inicio.',
+      'Copia la dirección y ábrela en <b>Safari</b>.',
+      'Ya en Safari, vuelve a tocar el botón naranja y sigue los pasos.' ] };
+    return { t:'En Safari', s:[
+      'Toca el botón '+SHARE+' <b>Compartir</b> de Safari, '+(ipad?'arriba a la derecha.':'en la barra de abajo (si no ves la barra, toca la parte de abajo de la pantalla). En iOS 26 está en el menú <b>⋯</b>.'),
+      'Desliza hacia abajo en la lista y toca '+PLUS+' <b>«Agregar a inicio»</b>. Si no aparece, al final toca <b>«Editar acciones»</b> y actívalo.',
+      'Toca <b>Agregar</b> arriba a la derecha. Listo: queda como app.' ] };
+  }
+  function guide(){
+    var g=steps(), o=document.createElement('div'); o.className='inst-guide'; o.setAttribute('role','dialog'); o.setAttribute('aria-modal','true'); o.setAttribute('aria-label','Cómo agregar a la pantalla de inicio');
+    o.innerHTML='<div class="inst-sheet"><button type="button" class="inst-x" aria-label="Cerrar">✕</button><p class="inst-kicker">📲 Agregar a tu pantalla</p><h3>'+g.t+'</h3><ol>'+g.s.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ol>'
+      +(browser==='app'||(!android&&browser!=='safari'&&browser!=='chrome')?'<button type="button" class="inst-copy">Copiar dirección</button>':'')
+      +'<button type="button" class="inst-ok">Entendido</button></div>'+(!android&&browser==='safari'&&!ipad?'<div class="inst-arrow" aria-hidden="true">↓</div>':'');
+    function close(){ o.remove(); document.removeEventListener('keydown',key); btn.focus() } function key(e){ if(e.key==='Escape') close() }
+    o.addEventListener('click',function(e){ if(e.target===o||e.target.closest('.inst-x,.inst-ok')) close();
+      if(e.target.closest('.inst-copy')){ var u=location.origin+location.pathname; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){toast('Dirección copiada')},function(){toast(u,8000)}) } });
+    document.addEventListener('keydown',key); document.body.appendChild(o); o.querySelector('.inst-ok').focus();
+  }
+  function show(){ cta.hidden=!(ios||android||deferred); if(hint) hint.textContent=deferred?'':'Te mostramos los pasos para tu celular.'; }
   window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; show(); });
   window.addEventListener('appinstalled',function(){ cta.hidden=true; deferred=null; toast('Listo: ya está en tu pantalla de inicio'); });
   btn.addEventListener('click',function(){
     try{navigator.vibrate&&navigator.vibrate(10)}catch(x){}
     if(deferred){ deferred.prompt(); deferred.userChoice.then(function(c){ if(c&&c.outcome==='accepted') cta.hidden=true; deferred=null; show(); }); return; }
-    if(ios){
-      var url=location.origin+location.pathname;
-      toast('En el menú que se abre, desliza y toca «Agregar a inicio» 📲',6000);
-      if(navigator.share){ navigator.share({title:'NFL IS MONEY',url:url}).catch(function(){}); }
-      else { toast('Toca el botón Compartir de Safari (el cuadro con la flecha ↑) y luego «Agregar a inicio».',7000); }
-    }
+    guide();
   });
+  window.__instGuide=guide;
   show();
 }();
 </script>
