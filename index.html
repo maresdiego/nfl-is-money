@@ -984,6 +984,19 @@ body.gp-sheet #viewPartidos{animation:none;transform:none}
 #contenido{scroll-margin-top:72px}
 #contenido:focus{outline:none}
 #gamePanel:focus{outline:none}
+/* ===== Quiniela (mejora 10, tras la parte B de seguridad) ===== */
+.q-game{border-left:5px solid var(--pylon);border-radius:var(--r-md)}
+.q-game.locked{border-left-color:var(--disabled)}
+.q-game.locked .q-closed-tag::before{content:"🔒 "}
+.q-team{min-height:64px;border-radius:var(--r-md);transition:background var(--dur-1) var(--ease),transform var(--dur-1) var(--ease)}
+.q-team.sel{box-shadow:inset 0 0 0 3px var(--pylon)}
+.q-prog{height:8px;border-radius:999px;background:var(--line);overflow:hidden;margin:8px 0 2px}
+.q-prog i{display:block;height:100%;width:0;background:var(--pylon);border-radius:999px;transition:width var(--dur-3) var(--ease)}
+#qPicksPane #qSaveBtn{position:sticky;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30}
+@media(max-width:820px){#qPicksPane #qSaveBtn{bottom:calc(80px + env(safe-area-inset-bottom,0px))}}
+.q-welcome .q-fold[hidden]{display:none}
+.q-more{margin-top:10px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--navy);background:transparent;color:var(--navy);font-family:inherit;font-size:var(--fs-sm);font-weight:700;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.q-team,.q-prog i{transition:none}}
 </style>
 </head>
 <body data-view="semana">
@@ -1542,7 +1555,7 @@ body.gp-sheet #viewPartidos{animation:none;transform:none}
         <h3>Preguntas bonus</h3>
         <span class="q-bonus-count" id="qBonusCounter">Bonus: 0/0</span>
       </div>
-      <p class="q-bonus-rules">LAS FÁCILES DAN 1 PUNTO SI ACIERTAS Y NO QUITAN PUNTOS SI FALLAS. LAS MEDIAS DAN 2 PUNTOS Y QUITAN 1 SI FALLAS. LAS DIFÍCILES DAN 3 PUNTOS Y QUITAN 2 SI FALLAS.</p>
+      <p class="q-bonus-rules">Las fáciles dan 1 punto si aciertas y no quitan puntos si fallas. Las medias dan 2 puntos y quitan 1 si fallas. Las difíciles dan 3 puntos y quitan 2 si fallas.</p>
       <p class="q-bonus-open-note" id="qBonusOpenNote" hidden>Las preguntas bonus de la Semana 12 aún no se publican.</p>
       <div id="qBonusWrap"></div>
     </div>
@@ -1789,6 +1802,23 @@ body.gp-sheet #viewPartidos{animation:none;transform:none}
   /* Rebote del marcador */
   ['bugHits','bugMiss'].forEach(function(id){var b=$(id); if(!b||!window.MutationObserver) return;
     new MutationObserver(function(){b.classList.remove('f4-pop'); void b.offsetWidth; b.classList.add('f4-pop')}).observe(b,{childList:true,characterData:true,subtree:true})});
+}();
+</script>
+<script>
+/* Quiniela · presentación (no toca guardado, candados ni lecturas): barra de progreso leída de
+   "Llevas X/16" y reglas plegables. */
+!function(){
+  var $=function(id){return document.getElementById(id)};
+  var c=$('qCounterLine');
+  if(c){var p=document.createElement('div');p.className='q-prog';p.setAttribute('aria-hidden','true');p.innerHTML='<i></i>';c.parentNode.insertBefore(p,c.nextSibling);
+    var upd=function(){var m=/(\d+)\s*\/\s*(\d+)/.exec(c.textContent||'');p.hidden=!m;if(m)p.firstChild.style.width=Math.round(100*(+m[1])/Math.max(1,+m[2]))+'%'};
+    window.MutationObserver&&new MutationObserver(upd).observe(c,{childList:true,characterData:true,subtree:true});upd()}
+  var w=document.querySelector('.q-welcome');
+  if(w){var items=[].filter.call(w.children,function(e){return /q-prize|q-rules-title|q-rules/.test(e.className)});
+    if(items.length){var box=document.createElement('div');box.className='q-fold';box.id='qFold';box.hidden=true;items[0].parentNode.insertBefore(box,items[0]);items.forEach(function(e){box.appendChild(e)});
+      var b=document.createElement('button');b.type='button';b.className='q-more';b.textContent='Ver reglas y premio';b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','qFold');
+      b.addEventListener('click',function(){box.hidden=!box.hidden;b.textContent=box.hidden?'Ver reglas y premio':'Ocultar reglas';b.setAttribute('aria-expanded',box.hidden?'false':'true')});
+      box.parentNode.insertBefore(b,box)}}
 }();
 </script>
 </body>
