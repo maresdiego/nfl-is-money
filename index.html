@@ -2791,36 +2791,59 @@ body:not([data-view="semana"]) .install-cta{display:none}
   function ab(x){ x=String(x||'').toUpperCase(); return ABR[x]||x }
   function numTxt(s){ return String(s).replace(',','.').replace(/\.$/,'') }
   /* Texto del OCR → [{t:'texto de la pierna', src:'renglones originales'}] */
+  /* Boleto de PlayDoit → piernas. En boletos sencillos el encabezado del partido ("BUF Bills @ NY Jets") va ANTES
+     de sus piernas; en los de Parlay va DESPUÉS. Se decide por votación con las piernas que dicen su equipo
+     (jugador (DAL), DAL Cowboys (-4.5), ganador…) y cada pierna toma el partido que contiene a su equipo. */
   function readSlip(raw){
-    var L=String(raw||'').split(/\n+/).map(function(l){return l.replace(/[|«»“”"]/g,' ').replace(/\s+/g,' ').trim()}).filter(Boolean);
+    var L=String(raw||'').split(/\n+/).map(function(l){
+      l=l.replace(/[|«»“”"•·●○◦▪■□►▶>~_=—–]/g,' ').replace(/\s+/g,' ').trim();
+      /* Viñetas o íconos que el OCR lee como letras sueltas: "e Yardas…", "9 Hándicap…", "0 KC Chiefs…" */
+      for(var k=0;k<3;k++) l=l.replace(/^(?:[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9(+\-]+|(?:[a-z]|\d{1,2})\s+(?=[A-ZÁÉÍÓÚÑ]))/,'').trim();
+      return l }).filter(Boolean);
     var bi=-1; L.forEach(function(l,i){ if(bi<0&&/^boleto\b/i.test(l)) bi=i }); if(bi>-1) L=L.slice(bi+1);
-    L=L.filter(function(l){ return !/apuesta total|ganancia total|ganar\s*:|limpiar todo|realizar apuesta|inicia sesi/i.test(l) });
-    var out=[], game=null, used={};
+    L=L.filter(function(l){ return !/apuesta total|ganancia total|ganar\s*:|limpiar todo|realizar apuesta|inicia sesi|^momios?\b/i.test(l) });
+    var H=[], legs=[], bad=[], used={};
     var SEL_PROP=/^(.+?)\s*\(\s*([A-Z]{2,3})\s*\)\s*(M[aá]s|Mas|Menos)\s*D[eo]\s*([\d]+[.,]\d|\d+)/i;
     var SEL_TD=/^(.+?)\s*\(\s*([A-Z]{2,3})\s*\)\s*$/;
     var SEL_OU=/(M[aá]s|Mas|Menos)\s*D[eo]\s*([\d]+[.,]\d|\d+)/i;
     var SEL_SP=/\(\s*([+-]\s?\d+(?:[.,]\d)?)\s*\)/;
-    function find(i,re,needTeam){ for(var j=i+1;j<=i+3&&j<L.length;j++){ if(used[j]) continue; var m=L[j].match(re); if(m&&(!needTeam||teamIn(L[j]))){ used[j]=1; return {m:m,line:L[j]} } } return null }
+    var MARKET=/total|h.ndicap|handicap|ganador|yardas|anotador|recepciones|touchdown/;
+    function dir(x){return /men/i.test(x)?'Menos':'Más'}
+    function find(i,re,needTeam){ for(var j=i+1;j<=i+3&&j<L.length;j++){ if(used[j]||H.some(function(h){return h.i===j})) continue; var m=L[j].match(re); if(m&&(!needTeam||teamIn(L[j]))){ used[j]=1; return {m:m,line:L[j]} } } return null }
+    /* 1) Encabezados de partido: renglón con dos equipos que no es un mercado */
+    L.forEach(function(l,i){ var two=teams2(l); if(two&&!MARKET.test(plain(l))) H.push({i:i,away:two[0],home:two[1]}) });
+    /* 2) Piernas */
     for(var i=0;i<L.length;i++){
-      var l=L[i], p=plain(l);
-      var two=teams2(l); if(two&&!/total|h.ndicap|ganador|yardas|anotador|recepciones/i.test(plain(l))){ game={away:two[0],home:two[1]}; continue }
-      if(used[i]||!game) continue;
-      var dir=function(x){return /men/i.test(x)?'Menos':'Más'}, r, unit=null;
+      if(used[i]||H.some(function(h){return h.i===i})) continue;
+      var l=L[i], p=plain(l), r, unit=null;
       if(/yardas de recep|yardas por recep/.test(p)) unit='yardas de recepción';
       else if(/yardas por tierra|yardas de carrera|yardas terrestres/.test(p)) unit='yardas por tierra';
       else if(/yardas de pase|yardas por pase|yardas aereas/.test(p)) unit='yardas de pase';
       else if(/touchdowns? de pase|pases? de touchdown|pases? de td/.test(p)) unit='touchdowns de pase';
-      else if(/^recepciones|recepciones del jugador/.test(p)) unit='recepciones';
-      if(unit){ r=find(i,SEL_PROP); if(r){ out.push({g:game,t:r.m[1].trim()+' ('+ab(r.m[2])+') '+dir(r.m[3])+' De '+numTxt(r.m[4])+' '+unit, src:l+' · '+r.line}); } else out.push({g:game,t:'',src:l,bad:'No encontré el jugador y la línea de: '+l}); continue }
-      if(/anotador/.test(p)){ r=find(i,SEL_TD); if(r) out.push({g:game,t:r.m[1].trim()+' ('+ab(r.m[2])+') anotador de touchdown',src:l+' · '+r.line}); else out.push({g:game,t:'',src:l,bad:'No encontré el jugador de: '+l}); continue }
-      if(/h.ndicap|handicap|spread|diferencia/.test(p)){ r=find(i,SEL_SP,true); if(r) out.push({g:game,t:teamIn(r.line)+' ('+r.m[1].replace(/\s/g,'').replace(',','.')+')',src:l+' · '+r.line}); else out.push({g:game,t:'',src:l,bad:'No encontré el equipo y la línea de: '+l}); continue }
+      else if(/\brecepciones\b/.test(p)) unit='recepciones';
+      if(unit){ r=find(i,SEL_PROP); if(r){ (function(m,u){ legs.push({i:i,team:ab(m[2]),src:l,make:function(){return m[1].trim()+' ('+ab(m[2])+') '+dir(m[3])+' De '+numTxt(m[4])+' '+u}}) })(r.m,unit) } else bad.push('No encontré el jugador y la línea de: '+l); continue }
+      if(/anotador/.test(p)){ r=find(i,SEL_TD); if(r){ (function(m){ legs.push({i:i,team:ab(m[2]),src:l,make:function(){return m[1].trim()+' ('+ab(m[2])+') anotador de touchdown'}}) })(r.m) } else bad.push('No encontré el jugador de: '+l); continue }
+      if(/h.ndicap|handicap|spread|diferencia/.test(p)){ r=find(i,SEL_SP,true); if(r){ (function(t,v){ legs.push({i:i,team:t,src:l,make:function(){return t+' ('+v+')'}}) })(teamIn(r.line),r.m[1].replace(/\s/g,'').replace(',','.')) } else bad.push('No encontré el equipo y la línea de: '+l); continue }
       if(/ganador|moneyline|linea de dinero/.test(p)){ var tm=null; for(var j=i+1;j<=i+3&&j<L.length;j++){ if(!used[j]&&!teams2(L[j])&&teamIn(L[j])){ used[j]=1; tm=teamIn(L[j]); break } }
-        if(tm) out.push({g:game,t:tm+' ganador',src:l}); else out.push({g:game,t:'',src:l,bad:'No encontré el equipo ganador de: '+l}); continue }
+        if(tm){ (function(t){ legs.push({i:i,team:t,src:l,make:function(){return t+' ganador'}}) })(tm) } else bad.push('No encontré el equipo ganador de: '+l); continue }
       if(/\btotal\b/.test(p)){ var who=teamIn(l); r=find(i,SEL_OU); if(!r){ var m0=l.match(SEL_OU); if(m0) r={m:m0} }
-        if(r&&who) out.push({g:game,t:who+' total '+dir(r.m[1])+' De '+numTxt(r.m[2]),src:l});
-        else if(r&&game) out.push({g:game,t:game.away+' vs '+game.home+' total '+dir(r.m[1])+' De '+numTxt(r.m[2]),src:l});
-        else out.push({g:game,t:'',src:l,bad:'No pude leer el total de: '+l}); continue }
+        if(r&&who){ (function(t,m){ legs.push({i:i,team:t,src:l,make:function(){return t+' total '+dir(m[1])+' De '+numTxt(m[2])}}) })(who,r.m) }
+        else if(r){ (function(m){ legs.push({i:i,team:null,src:l,make:function(g){return g?g.away+' vs '+g.home+' total '+dir(m[1])+' De '+numTxt(m[2]):''}}) })(r.m) }
+        else bad.push('No pude leer el total de: '+l); continue }
     }
+    /* 3) ¿El encabezado va antes o después de sus piernas? */
+    function prevH(i){ var h=null; H.forEach(function(x){ if(x.i<i) h=x }); return h }
+    function nextH(i){ for(var k=0;k<H.length;k++) if(H[k].i>i) return H[k]; return null }
+    function has(h,t){ return h&&t&&(h.away===t||h.home===t) }
+    var vb=0, va=0; legs.forEach(function(g){ if(!g.team) return; if(has(prevH(g.i),g.team)) vb++; if(has(nextH(g.i),g.team)) va++ });
+    var after=va>vb;
+    var out=legs.map(function(g){
+      var a=prevH(g.i), b=nextH(g.i), h=after?(b||a):(a||b);
+      if(g.team&&!has(h,g.team)){ if(has(a,g.team)) h=a; else if(has(b,g.team)) h=b }
+      var t=g.make(h?{away:h.away,home:h.home}:null);
+      return t?{g:h?{away:h.away,home:h.home}:null,t:t,src:g.src}:{t:'',src:g.src,bad:'No encontré el partido de: '+g.src};
+    });
+    bad.forEach(function(b){ out.push({t:'',bad:b}) });
     out.forEach(function(o){ if(o.t&&o.g) SLIPG[o.t]=o.g });
     return out;
   }
